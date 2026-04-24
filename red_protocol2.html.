@@ -59,7 +59,7 @@
             const row = document.getElementById(`row-${curTry}`);
             const cells = row.querySelectorAll('.cell');
             let guess = ""; cells.forEach(c => guess += c.innerText);
-            letct = 0;
+            let correct = 0;
             for(let i=0; i<4; i++) {
                 if(guess[i] === levels[curLvl].code[i]) { cells[i].classList.add('correct'); correct++; }
                 else cells[i].classList.add('wrong');
@@ -101,4 +101,4 @@
         tg.expand();
     </script>
 </body>
-</html> corre
+</html>
