@@ -10,22 +10,25 @@
         .safe-grid { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
         .row { display: flex; gap: 10px; opacity: 0.3; transition: 0.3s; }
         .row.active { opacity: 1; transform: scale(1.05); }
-        .cell { 
-            width: 50px; height: 50px; border: 2px solid #ff3e3e; display: flex; 
-            align-items: center; justify-content: center; font-size: 24px; font-weight: bold; 
-            border-radius: 5px; cursor: pointer; background: rgba(255,0,0,0.1);
-        }
-        .cell.correct { background: #238636 !important; border-color: #238636 !important; color: white; }
-        .cell.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; }
         
+        /* Поля ввода */
+        .cell-input { 
+            width: 50px; height: 50px; border: 2px solid #ff3e3e; background: rgba(255,0,0,0.05);
+            color: #ff3e3e; font-size: 24px; font-weight: bold; text-align: center; 
+            border-radius: 5px; outline: none; font-family: inherit;
+        }
+        .cell-input:focus { box-shadow: 0 0 10px #ff3e3e; background: rgba(255,0,0,0.15); }
+        .cell-input.correct { background: #238636 !important; border-color: #238636 !important; color: white; }
+        .cell-input.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; }
+
         .btn-check { 
             background: #ff3e3e; color: black; border: none; padding: 18px 40px; 
             font-family: inherit; font-weight: bold; font-size: 18px; width: 240px; 
-            margin-top: 20px; border-radius: 8px; cursor: pointer; z-index: 1000;
+            margin-top: 20px; border-radius: 8px; cursor: pointer;
         }
-        .btn-check:active { transform: scale(0.95); opacity: 0.8; }
+        .btn-check:hover { opacity: 0.9; }
 
-        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; z-index: 2000; }
+        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; z-index: 10; }
         .modal-content { border: 1px solid #58a6ff; padding: 30px; border-radius: 15px; background: #0d1117; color: white; max-width: 320px; }
     </style>
 </head>
@@ -35,16 +38,16 @@
         <h3 id="lvl-txt" style="text-transform: uppercase; letter-spacing: 2px;">СЕЙФ: УРОВЕНЬ 1</h3>
         <div class="safe-grid" id="grid">
             <div class="row active" id="row-0">
-                <div class="cell" onclick="changeNum(this)">0</div>
-                <div class="cell" onclick="changeNum(this)">0</div>
-                <div class="cell" onclick="changeNum(this)">0</div>
-                <div class="cell" onclick="changeNum(this)">0</div>
+                <input type="number" class="cell-input" maxlength="1" oninput="moveNext(this, 0)" onclick="this.select()">
+                <input type="number" class="cell-input" maxlength="1" oninput="moveNext(this, 1)" onclick="this.select()">
+                <input type="number" class="cell-input" maxlength="1" oninput="moveNext(this, 2)" onclick="this.select()">
+                <input type="number" class="cell-input" maxlength="1" oninput="moveNext(this, 3)" onclick="this.select()">
             </div>
-            <div class="row" id="row-1"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-            <div class="row" id="row-2"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-            <div class="row" id="row-3"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+            <div class="row" id="row-1"><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div></div>
+            <div class="row" id="row-2"><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div></div>
+            <div class="row" id="row-3"><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div><div class="cell-input" disabled>?</div></div>
         </div>
-        <button class="btn-check" onclick="verifyCode()">ВЗЛОМАТЬ</button>
+        <button class="btn-check" id="main-btn" onclick="verifyCode()">ВЗЛОМАТЬ</button>
     </div>
 
     <div id="modal">
@@ -70,28 +73,36 @@
         let curLvl = 0;
         let curTry = 0;
 
-        function changeNum(el) {
-            if (!el.parentElement.classList.contains('active')) return;
-            el.innerText = (parseInt(el.innerText) + 1) % 10;
+        // Авто-переход на следующее поле
+        function moveNext(el, index) {
+            if (el.value.length > 1) el.value = el.value.slice(0, 1);
+            if (el.value.length === 1 && index < 3) {
+                el.parentElement.children[index + 1].focus();
+            }
         }
 
+        // Слушаем нажатие Enter
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyCode();
+        });
+
         function verifyCode() {
-            console.log("Кнопка нажата. Попытка:", curTry);
             const row = document.getElementById(`row-${curTry}`);
-            const cells = row.querySelectorAll('.cell');
-            
+            const inputs = row.querySelectorAll('.cell-input');
             let guess = "";
-            cells.forEach(c => guess += c.innerText);
+            inputs.forEach(i => guess += i.value);
+
+            if (guess.length < 4) return;
 
             let correct = 0;
             const target = levels[curLvl].code;
 
             for(let i=0; i<4; i++) {
                 if(guess[i] === target[i]) {
-                    cells[i].classList.add('correct');
+                    inputs[i].classList.add('correct');
                     correct++;
                 } else {
-                    cells[i].classList.add('wrong');
+                    inputs[i].classList.add('wrong');
                 }
             }
 
@@ -100,10 +111,9 @@
             } else {
                 curTry++;
                 if(curTry < 4) {
-                    setTimeout(prepareNextRow, 500);
+                    setTimeout(prepareNextRow, 600);
                 } else {
-                    tg.HapticFeedback?.notificationOccurred('error');
-                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезагрузка сейфа...");
+                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезагрузка...");
                     location.reload();
                 }
             }
@@ -111,19 +121,20 @@
 
         function prepareNextRow() {
             document.querySelectorAll('.row').forEach(r => r.classList.remove('active'));
-            const nextRow = document.getElementById(`row-${curTry}`);
-            nextRow.classList.add('active');
-            nextRow.querySelectorAll('.cell').forEach(c => {
-                c.innerText = "0";
-                c.onclick = function() { changeNum(this); };
-            });
+            const grid = document.getElementById('grid');
+            const newRow = document.createElement('div');
+            newRow.className = 'row active';
+            newRow.id = `row-${curTry}`;
+            for(let i=0; i<4; i++) {
+                newRow.innerHTML += `<input type="number" class="cell-input" maxlength="1" oninput="moveNext(this, ${i})" onclick="this.select()">`;
+            }
+            grid.replaceChild(newRow, document.getElementById(`row-${curTry}`));
+            newRow.children[0].focus();
         }
 
         function showModal() {
-            tg.HapticFeedback?.notificationOccurred('success');
             document.getElementById('reward-text').innerText = levels[curLvl].reward;
             document.getElementById('clue-text').innerText = levels[curLvl].clue;
-            if(curLvl === 3) document.getElementById('modal-title').innerText = "ВЗЛОМ ЗАВЕРШЕН!";
             document.getElementById('modal').style.display = 'flex';
         }
 
@@ -138,23 +149,8 @@
                 curTry = 0;
                 document.getElementById('modal').style.display = 'none';
                 document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (curLvl + 1);
-                resetGridUI();
+                location.reload(); // Для чистоты сбрасываем всё
             }
-        }
-
-        function resetGridUI() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = `
-                <div class="row active" id="row-0">
-                    <div class="cell" onclick="changeNum(this)">0</div>
-                    <div class="cell" onclick="changeNum(this)">0</div>
-                    <div class="cell" onclick="changeNum(this)">0</div>
-                    <div class="cell" onclick="changeNum(this)">0</div>
-                </div>
-                <div class="row" id="row-1"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-                <div class="row" id="row-2"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-                <div class="row" id="row-3"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-            `;
         }
         tg.ready();
     </script>
