@@ -8,81 +8,153 @@
     <style>
         body { background: #0a0a0a; color: #ff3e3e; font-family: 'Courier New', monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; justify-content: center; align-items: center; text-align: center; }
         .safe-grid { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
-        .row { display: flex; gap: 10px; opacity: 0.3; }
-        .row.active { opacity: 1; }
-        .cell { width: 50px; height: 50px; border: 2px solid #ff3e3e; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border-radius: 5px; cursor: pointer; background: rgba(255,0,0,0.05); }
-        .cell.correct { background: #238636; border-color: #238636; color: white; }
-        .cell.wrong { background: #da3633; border-color: #da3633; color: white; }
-        .btn-check { background: transparent; border: 2px solid #ff3e3e; color: #ff3e3e; padding: 15px 30px; font-family: inherit; width: 230px; margin-top: 10px; }
-        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .modal-content { border: 1px solid #58a6ff; padding: 20px; border-radius: 10px; background: #0d1117; color: white; }
+        .row { display: flex; gap: 10px; opacity: 0.3; transition: 0.3s; }
+        .row.active { opacity: 1; transform: scale(1.05); }
+        .cell { 
+            width: 50px; height: 50px; border: 2px solid #ff3e3e; display: flex; 
+            align-items: center; justify-content: center; font-size: 24px; font-weight: bold; 
+            border-radius: 5px; cursor: pointer; background: rgba(255,0,0,0.1);
+        }
+        .cell.correct { background: #238636 !important; border-color: #238636 !important; color: white; }
+        .cell.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; }
+        
+        .btn-check { 
+            background: #ff3e3e; color: black; border: none; padding: 18px 40px; 
+            font-family: inherit; font-weight: bold; font-size: 18px; width: 240px; 
+            margin-top: 20px; border-radius: 8px; cursor: pointer; z-index: 1000;
+        }
+        .btn-check:active { transform: scale(0.95); opacity: 0.8; }
+
+        #modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; z-index: 2000; }
+        .modal-content { border: 1px solid #58a6ff; padding: 30px; border-radius: 15px; background: #0d1117; color: white; max-width: 320px; }
     </style>
 </head>
 <body>
-    <h3 id="lvl-txt">СЕЙФ: УРОВЕНЬ 1</h3>
-    <div class="safe-grid" id="grid">
-        <div class="row active" id="row-0">
-            <div class="cell" onclick="changeNum(this)">0</div><div class="cell" onclick="changeNum(this)">0</div><div class="cell" onclick="changeNum(this)">0</div><div class="cell" onclick="changeNum(this)">0</div>
+
+    <div id="game-ui">
+        <h3 id="lvl-txt" style="text-transform: uppercase; letter-spacing: 2px;">СЕЙФ: УРОВЕНЬ 1</h3>
+        <div class="safe-grid" id="grid">
+            <div class="row active" id="row-0">
+                <div class="cell" onclick="changeNum(this)">0</div>
+                <div class="cell" onclick="changeNum(this)">0</div>
+                <div class="cell" onclick="changeNum(this)">0</div>
+                <div class="cell" onclick="changeNum(this)">0</div>
+            </div>
+            <div class="row" id="row-1"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+            <div class="row" id="row-2"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+            <div class="row" id="row-3"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
         </div>
-        <div class="row" id="row-1"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-        <div class="row" id="row-2"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
-        <div class="row" id="row-3"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+        <button class="btn-check" onclick="verifyCode()">ВЗЛОМАТЬ</button>
     </div>
-    <button class="btn-check" onclick="verify()">ВЗЛОМАТЬ</button>
+
     <div id="modal">
         <div class="modal-content">
-            <h2 style="color:#58a6ff">СЕЙФ ОТКРЫТ!</h2>
+            <h2 id="modal-title" style="color:#58a6ff">ДОСТУП ПОЛУЧЕН</h2>
             <p id="reward-text"></p>
-            <p id="clue-text" style="color:#ff9d00; font-size:14px; border-top:1px solid #333; padding-top:10px"></p>
-            <button class="btn-check" style="border-color:#58a6ff; color:#58a6ff" onclick="next()">ПРОДОЛЖИТЬ</button>
+            <p id="clue-text" style="color:#ff9d00; font-size:14px; border-top:1px solid #333; padding-top:15px; margin-top:15px;"></p>
+            <button class="btn-check" style="background:#58a6ff; width:100%" onclick="nextLevel()">ПРОДОЛЖИТЬ</button>
         </div>
     </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+
         const levels = [
             { code: "2003", reward: "Инфо: Можно будет играть на бирже, скупать крипту и влиять на мир.", clue: "Подсказка: Какой был номер группы создателя в кулинарном колледже?" },
             { code: "0453", reward: "Инфо: Открытый мир на Ближнем Востоке (Катар, Саудовская Аравия, Иран, Ирак).", clue: "Подсказка: Номер группы в технологическом институте?" },
             { code: "6421", reward: "Инфо: Игра от 1-го и от 3-го лица.", clue: "Подсказка: В каком году вышла первая часть Красного Протокола?" },
             { code: "0000", reward: "Инфо: Доступны авто, самолеты, вертолеты и катера.", clue: "ПОЗДРАВЛЯЕМ! Вы прошли игру, вы — истинный знаток серии!" }
         ];
-        let curLvl = 0; let curTry = 0;
-        function changeNum(el) { el.innerText = (parseInt(el.innerText) + 1) % 10; }
-        function verify() {
+
+        let curLvl = 0;
+        let curTry = 0;
+
+        function changeNum(el) {
+            if (!el.parentElement.classList.contains('active')) return;
+            el.innerText = (parseInt(el.innerText) + 1) % 10;
+        }
+
+        function verifyCode() {
+            console.log("Кнопка нажата. Попытка:", curTry);
             const row = document.getElementById(`row-${curTry}`);
             const cells = row.querySelectorAll('.cell');
-            let guess = ""; cells.forEach(c => guess += c.innerText);
+            
+            let guess = "";
+            cells.forEach(c => guess += c.innerText);
+
             let correct = 0;
+            const target = levels[curLvl].code;
+
             for(let i=0; i<4; i++) {
-                if(guess[i] === levels[curLvl].code[i]) { cells[i].classList.add('correct'); correct++; }
-                else cells[i].classList.add('wrong');
+                if(guess[i] === target[i]) {
+                    cells[i].classList.add('correct');
+                    correct++;
+                } else {
+                    cells[i].classList.add('wrong');
+                }
             }
-            if(correct === 4) { showModal(); }
-            else { 
-                curTry++; 
+
+            if(correct === 4) {
+                showModal();
+            } else {
+                curTry++;
                 if(curTry < 4) {
-                    document.getElementById(`row-${curTry}`).classList.add('active');
-                    document.getElementById(`row-${curTry}`).querySelectorAll('.cell').forEach(c => { c.innerText="0"; c.onclick=function(){changeNum(this)}});
-                } else { alert("Сброс сейфа!"); location.reload(); }
+                    setTimeout(prepareNextRow, 500);
+                } else {
+                    tg.HapticFeedback?.notificationOccurred('error');
+                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезагрузка сейфа...");
+                    location.reload();
+                }
             }
         }
+
+        function prepareNextRow() {
+            document.querySelectorAll('.row').forEach(r => r.classList.remove('active'));
+            const nextRow = document.getElementById(`row-${curTry}`);
+            nextRow.classList.add('active');
+            nextRow.querySelectorAll('.cell').forEach(c => {
+                c.innerText = "0";
+                c.onclick = function() { changeNum(this); };
+            });
+        }
+
         function showModal() {
+            tg.HapticFeedback?.notificationOccurred('success');
             document.getElementById('reward-text').innerText = levels[curLvl].reward;
             document.getElementById('clue-text').innerText = levels[curLvl].clue;
+            if(curLvl === 3) document.getElementById('modal-title').innerText = "ВЗЛОМ ЗАВЕРШЕН!";
             document.getElementById('modal').style.display = 'flex';
         }
-        function next() {
+
+        function nextLevel() {
             if(curLvl === 3) {
                 let p = JSON.parse(localStorage.getItem('syndicate_progress') || '[]');
                 if(!p.includes('game-1')) p.push('game-1');
                 localStorage.setItem('syndicate_progress', JSON.stringify(p));
-                location.href = 'index.html';
+                window.location.href = 'index.html';
             } else {
-                curLvl++; curTry = 0;
+                curLvl++;
+                curTry = 0;
                 document.getElementById('modal').style.display = 'none';
-                document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (curLvl+1);
-                location.reload(); // Простой способ сбросить сетку
+                document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (curLvl + 1);
+                resetGridUI();
             }
+        }
+
+        function resetGridUI() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = `
+                <div class="row active" id="row-0">
+                    <div class="cell" onclick="changeNum(this)">0</div>
+                    <div class="cell" onclick="changeNum(this)">0</div>
+                    <div class="cell" onclick="changeNum(this)">0</div>
+                    <div class="cell" onclick="changeNum(this)">0</div>
+                </div>
+                <div class="row" id="row-1"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+                <div class="row" id="row-2"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+                <div class="row" id="row-3"><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div><div class="cell">?</div></div>
+            `;
         }
         tg.ready();
     </script>
