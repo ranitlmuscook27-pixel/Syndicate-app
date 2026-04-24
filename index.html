@@ -3,70 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syndicate Games Hub</title>
+    <title>Syndicate Hub</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            /* Приложение само подстроится под темную/светлую тему пользователя */
-            background-color: var(--tg-theme-bg-color, #121212);
-            color: var(--tg-theme-text-color, #ffffff);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
+        :root { --bg: #0d1117; --card: #161b22; --accent: #58a6ff; --success: #238636; --text: #c9d1d9; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .header { text-align: left; margin-bottom: 30px; border-bottom: 1px solid #30363d; padding-bottom: 15px; }
+        .user-info { font-size: 18px; font-weight: bold; }
+        .progress-bar { height: 8px; background: #30363d; border-radius: 4px; margin: 15px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { 
+            background: var(--card); border: 1px solid #30363d; border-radius: 12px; padding: 20px; 
+            text-align: center; position: relative; transition: 0.2s; text-decoration: none; color: inherit;
         }
-        .container {
-            border: 1px solid var(--tg-theme-hint-color, #333);
-            border-radius: 12px;
-            padding: 20px;
-            background-color: var(--tg-theme-secondary-bg-color, #1e1e1e);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-        h1 { margin-top: 0; }
-        .btn {
-            background-color: var(--tg-theme-button-color, #e63946);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            padding: 15px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            width: 100%;
-            margin-top: 20px;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-        .profile { margin-top: 15px; font-size: 18px; font-weight: bold; color: var(--tg-theme-hint-color, #888); }
+        .card.done { border-color: var(--success); }
+        .card.done::after { content: "✅"; position: absolute; top: 5px; right: 5px; font-size: 12px; }
+        .preorder-section { margin-top: 30px; display: none; background: #1c1c1e; padding: 20px; border-radius: 12px; border: 1px solid #ff9d00; }
+        .btn-main { background: #ff9d00; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎮 Syndicate Hub</h1>
-        <div class="profile" id="user-info">Анализ биометрии...</div>
-        <p>Доступ к закрытым серверам студии разрешен.</p>
-        <button class="btn" id="action-btn" onclick="sendData()">Запросить доступ к бета-тесту</button>
+    <div class="header">
+        <div class="user-info" id="user-name">Загрузка...</div>
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <small id="status-text">Миссий завершено: 0 из 4</small>
+    </div>
+
+    <div class="grid">
+        <a href="red_protocol.html" class="card" id="game-1">
+            <div style="font-size: 30px;">🔫</div>
+            <h4>Красный протокол 2</h4>
+        </a>
+        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
+        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
+        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
+    </div>
+
+    <div id="preorder-block" class="preorder-section">
+        <h3>🎉 Квест пройден!</h3>
+        <p>Вы настоящий фанат Syndicate Games.</p>
+        <button class="btn-main" onclick="finish()">ОФОРМИТЬ ПРЕДЗАКАЗ</button>
     </div>
 
     <script>
-        // Инициализируем Web App
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Открываем сразу на весь экран
+        tg.expand();
+        document.getElementById("user-name").innerText = "Агент: " + (tg.initDataUnsafe?.user?.first_name || "Incognito");
 
-        // Вытаскиваем имя пользователя из Телеграма
-        let user = tg.initDataUnsafe?.user;
-        let userName = user ? user.first_name : "Агент";
-        
-        // Меняем текст на странице
-        document.getElementById("user-info").innerText = "Добро пожаловать, " + userName + "!";
+        // Проверка прогресса
+        let gamesDone = JSON.parse(localStorage.getItem('syndicate_progress') || '[]');
+        gamesDone.forEach(id => {
+            let el = document.getElementById(id);
+            if(el) el.classList.add('done');
+        });
 
-        // Что происходит при нажатии на кнопку
-        function sendData() {
-            // Отправляем скрытые данные боту
-            tg.sendData("ЗАПРОС_БЕТА_ТЕСТА");
-            // Закрываем приложение
+        let percent = (gamesDone.length / 1) * 100; // Пока считаем от 1 игры
+        document.getElementById("progress").style.width = percent + "%";
+        document.getElementById("status-text").innerText = "Миссий завершено: " + gamesDone.length + " из 1";
+
+        if(gamesDone.length >= 1) document.getElementById("preorder-block").style.display = "block";
+
+        function finish() {
+            tg.sendData("PREORDER_CONFIRMED");
             tg.close();
         }
-
         tg.ready();
     </script>
 </body>
