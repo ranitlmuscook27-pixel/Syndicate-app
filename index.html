@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syndicate Games Hub</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            /* Приложение само подстроится под темную/светлую тему пользователя */
+            background-color: var(--tg-theme-bg-color, #121212);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            border: 1px solid var(--tg-theme-hint-color, #333);
+            border-radius: 12px;
+            padding: 20px;
+            background-color: var(--tg-theme-secondary-bg-color, #1e1e1e);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { margin-top: 0; }
+        .btn {
+            background-color: var(--tg-theme-button-color, #e63946);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .profile { margin-top: 15px; font-size: 18px; font-weight: bold; color: var(--tg-theme-hint-color, #888); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Syndicate Hub</h1>
+        <div class="profile" id="user-info">Анализ биометрии...</div>
+        <p>Доступ к закрытым серверам студии разрешен.</p>
+        <button class="btn" id="action-btn" onclick="sendData()">Запросить доступ к бета-тесту</button>
+    </div>
+
+    <script>
+        // Инициализируем Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Открываем сразу на весь экран
+
+        // Вытаскиваем имя пользователя из Телеграма
+        let user = tg.initDataUnsafe?.user;
+        let userName = user ? user.first_name : "Агент";
+        
+        // Меняем текст на странице
+        document.getElementById("user-info").innerText = "Добро пожаловать, " + userName + "!";
+
+        // Что происходит при нажатии на кнопку
+        function sendData() {
+            // Отправляем скрытые данные боту
+            tg.sendData("ЗАПРОС_БЕТА_ТЕСТА");
+            // Закрываем приложение
+            tg.close();
+        }
+
+        tg.ready();
+    </script>
+</body>
+</html>
