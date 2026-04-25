@@ -11,6 +11,7 @@
             color: #ff3e3e; overflow: hidden; user-select: none;
         }
         
+        /* Главное меню */
         #menu-screen { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; text-align: center; padding: 20px; box-sizing: border-box; background: #0d1117;
@@ -21,36 +22,40 @@
             box-shadow: 0 0 25px rgba(255,62,62,0.4); margin-bottom: 40px;
         }
 
+        /* Экран игры */
         #game-screen { 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; padding: 10px; box-sizing: border-box;
-            background: linear-gradient(rgba(0,0,0,0.80), rgba(0,0,0,0.80)), 
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
                         url('https://sun9-18.userapi.com/s/v1/ig2/NIVG7DIPYsNjLIknvm8VPmekoxeUOtMNfvvQxpfrTsbHSCwHPD4koWrMwUSTnBuRpwUVYi0xbaTTF1-npYNpOttD.jpg?quality=95&as=32x20,48x30,72x44,108x67,160x99,240x148,360x222,480x296,540x333,640x395,720x444,1080x667,1244x768&from=bu&u=Lkv39YOdjxq8HNeV8Kxo-8fce0yW4u1eqMz7z3BxNuQ&cs=1244x0') center/cover no-repeat;
         }
-        #lvl-txt { font-size: 24px; letter-spacing: 3px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold;}
+        #lvl-txt { font-size: 26px; letter-spacing: 3px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold; text-shadow: 0 0 10px #ff3e3e;}
         .version { font-size: 10px; color: #555; position: absolute; top: 10px; right: 10px; }
 
+        /* Сетка сейфа */
         .safe-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
-        .row { display: flex; gap: 12px; opacity: 0.2; pointer-events: none; transition: 0.4s; }
+        .row { display: flex; gap: 12px; opacity: 0.3; pointer-events: none; transition: 0.4s; }
         .row.active { opacity: 1; transform: scale(1.05); pointer-events: auto; }
         
         .cell-input { 
-            width: 55px; height: 60px; border: 2px solid #ff3e3e; background: rgba(255,0,0,0.05);
-            color: #ff3e3e; font-size: 28px; font-weight: bold; text-align: center; 
+            width: 55px; height: 60px; border: 2px solid #ff3e3e; background: rgba(255,0,0,0.1);
+            color: #ff3e3e; font-size: 30px; font-weight: bold; text-align: center; 
             border-radius: 8px; outline: none; font-family: inherit; transition: 0.3s;
         }
-        .cell-input:focus { border-color: #fff; box-shadow: 0 0 15px #ff3e3e; background: rgba(255,0,0,0.15); }
-        .cell-input.correct { background: #238636 !important; border-color: #238636 !important; color: white; }
-        .cell-input.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; }
+        .cell-input:focus { border-color: #fff; box-shadow: 0 0 15px #ff3e3e; background: rgba(255,0,0,0.2); }
+        .cell-input.correct { background: #238636 !important; border-color: #238636 !important; color: white; box-shadow: 0 0 15px #238636; }
+        .cell-input.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; box-shadow: 0 0 15px #da3633; }
 
+        /* Кнопки */
         button { 
             background: #ff3e3e; color: #000; border: none; padding: 18px 0; width: 280px;
             font-family: inherit; font-weight: bold; font-size: 22px; border-radius: 10px; 
-            cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,62,62,0.5); transition: 0.2s;
+            cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,62,62,0.5); transition: 0.2s; margin-top: 10px;
         }
         button:active { transform: scale(0.95); opacity: 0.8; }
-        .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); margin-top: 20px; width: 100%;}
+        .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); width: 100%;}
 
+        /* Модальное окно */
         #modal { 
             display: none; position: fixed; top:0; left:0; width:100%; height:100%; 
             background: rgba(0,0,0,0.92); justify-content: center; align-items: center; 
@@ -60,57 +65,59 @@
             background: #0d1117; border: 2px solid #58a6ff; padding: 30px; 
             border-radius: 15px; max-width: 350px; text-align: center; color: white;
         }
-        .modal-content h2 { color: #58a6ff; margin-top: 0; font-size: 24px; }
-        .modal-content p { font-size: 16px; line-height: 1.5; }
-        .clue { color: #ff9d00; border-top: 1px solid #333; padding-top: 15px; margin-top: 15px; font-size: 14px; font-style: italic; }
+        .modal-content h2 { color: #58a6ff; margin-top: 0; font-size: 24px; text-transform: uppercase; }
+        .modal-content p { font-size: 16px; line-height: 1.5; margin-bottom: 20px;}
+        .clue { color: #ff9d00; border-top: 1px solid #333; padding-top: 15px; margin-bottom: 20px; font-size: 15px; font-style: italic; }
+        
+        .final-congrats { color: #238636; font-size: 18px; font-weight: bold; text-shadow: 0 0 10px #238636; border-top: 1px solid #333; padding-top: 15px; margin-bottom: 20px;}
     </style>
 </head>
 <body>
-    <div class="version">v4.0</div>
+    <div class="version">v5.0</div>
 
     <div id="menu-screen">
         <h1>Красный Протокол 2</h1>
         <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер">
-        <button onclick="startGame()">НАЧАТЬ ИГРУ</button>
+        <button id="btn-start" onclick="startGame()">НАЧАТЬ ИГРУ</button>
     </div>
 
     <div id="game-screen">
         <h3 id="lvl-txt">СЕЙФ: УРОВЕНЬ 1</h3>
         <div class="safe-grid" id="grid">
             <div class="row active" id="row-0">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-0-0">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-0-1">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-0-2">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-0-3">
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-0-0">
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-0-1">
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-0-2">
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-0-3">
             </div>
             <div class="row" id="row-1">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-1-0" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-1-1" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-1-2" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-1-3" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-1-0" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-1-1" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-1-2" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-1-3" disabled>
             </div>
             <div class="row" id="row-2">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-2-0" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-2-1" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-2-2" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-2-3" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-2-0" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-2-1" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-2-2" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-2-3" disabled>
             </div>
             <div class="row" id="row-3">
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-3-0" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-3-1" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-3-2" disabled>
-                <input type="text" class="cell-input" inputmode="numeric" maxlength="1" id="cell-3-3" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-3-0" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-3-1" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-3-2" disabled>
+                <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-3-3" disabled>
             </div>
         </div>
-        <button onclick="attemptHack()">ВЗЛОМАТЬ</button>
+        <button id="btn-hack" onclick="attemptHack()">ВЗЛОМАТЬ СЕЙФ</button>
     </div>
 
     <div id="modal">
         <div class="modal-content">
-            <h2 id="modal-title">ДОСТУП ПОЛУЧЕН</h2>
+            <h2 id="modal-title">СЕЙФ ОТКРЫТ!</h2>
             <p id="reward-text"></p>
-            <div class="clue"><span id="clue-text"></span></div>
-            <button class="btn-blue" onclick="goToNextStage()">ПРОДОЛЖИТЬ</button>
+            <div id="clue-container"></div>
+            <button class="btn-blue" id="next-btn" onclick="goToNextStage()">ПРОДОЛЖИТЬ</button>
         </div>
     </div>
 
@@ -118,50 +125,76 @@
         var tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
 
-        var levelsInfo = [
-            { code: "2003", reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" },
-            { code: "0453", reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" },
-            { code: "6421", reward: "Можно будет играть как от первого так и от третьего лица.", clue: "В каком году вышла первая часть игры Красный протокол?" },
-            { code: "2024", reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", clue: "ПОЗДРАВЛЯЕМ! Вы прошли игру, вы знаток серии!" }
+        // База данных игры
+        var levelsData = [
+            { 
+                code: "2003", 
+                reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", 
+                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" 
+            },
+            { 
+                code: "0453", 
+                reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", 
+                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" 
+            },
+            { 
+                code: "6421", 
+                reward: "Можно будет играть как от первого так и от третьего лица.", 
+                clue: "В каком году вышла первая часть игры Красный протокол?" 
+            },
+            { 
+                code: "2024", 
+                reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", 
+                clue: "ПОЗДРАВЛЯЕМ!\nВы прошли игру, вы истинный знаток серии Syndicate Games!" 
+            }
         ];
 
-        var currentLevelIndex = 0;
-        var currentAttemptIndex = 0;
+        var currentLvl = 0;
+        var currentTry = 0;
 
-        function setupInputs() {
-            var rows = document.querySelectorAll('.row');
-            for (var rIdx = 0; rIdx < rows.length; rIdx++) {
-                var inputs = rows[rIdx].querySelectorAll('.cell-input');
-                for (var cIdx = 0; cIdx < inputs.length; cIdx++) {
-                    (function(r, c, input) {
-                        input.addEventListener('input', function(e) {
-                            if (input.value.length > 1) input.value = input.value.slice(-1);
-                            input.value = input.value.replace(/[^0-9]/g, '');
-                            if (input.value !== '' && c < 3) {
-                                document.getElementById('cell-' + r + '-' + (c + 1)).focus();
-                            }
-                        });
-                        input.addEventListener('keydown', function(e) {
-                            if (e.key === 'Backspace' && input.value === '' && c > 0) {
-                                document.getElementById('cell-' + r + '-' + (c - 1)).focus();
-                            }
-                        });
-                    })(rIdx, cIdx, inputs[cIdx]);
-                }
+        // Настройка полей ввода
+        var rows = document.querySelectorAll('.row');
+        for (var r = 0; r < rows.length; r++) {
+            var inputs = rows[r].querySelectorAll('.cell-input');
+            for (var c = 0; c < inputs.length; c++) {
+                (function(rowIdx, colIdx, inputField) {
+                    // Ввод цифры и авто-переход
+                    inputField.addEventListener('input', function() {
+                        inputField.value = inputField.value.replace(/[^0-9]/g, ''); // Только цифры
+                        if (inputField.value.length > 1) inputField.value = inputField.value.slice(-1);
+                        
+                        if (inputField.value !== '' && colIdx < 3) {
+                            document.getElementById('cell-' + rowIdx + '-' + (colIdx + 1)).focus();
+                        }
+                    });
+                    
+                    // Удаление и возврат назад
+                    inputField.addEventListener('keydown', function(e) {
+                        if (e.key === 'Backspace' && inputField.value === '' && colIdx > 0) {
+                            document.getElementById('cell-' + rowIdx + '-' + (colIdx - 1)).focus();
+                        }
+                    });
+                })(r, c, inputs[c]);
             }
         }
 
-        // Перехватчик Enter и Пробела (теперь работает железобетонно)
+        // Глобальный слушатель кнопок: Enter и Пробел
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.code === 'Space') {
-                if (e.target.tagName === 'INPUT' && e.code === 'Space') return;
+                
+                // Предотвращаем скроллинг страницы пробелом
                 if (e.code === 'Space') e.preventDefault(); 
                 
+                // Если открыто всплывающее окно - закрываем его
                 if (document.getElementById('modal').style.display === 'flex') {
                     goToNextStage();
-                } else if (document.getElementById('game-screen').style.display === 'flex') {
+                } 
+                // Если мы в игре - взламываем
+                else if (document.getElementById('game-screen').style.display === 'flex') {
                     attemptHack();
-                } else if (document.getElementById('menu-screen').style.display === 'flex') {
+                } 
+                // Если мы в меню - начинаем
+                else if (document.getElementById('menu-screen').style.display === 'flex') {
                     startGame();
                 }
             }
@@ -174,7 +207,7 @@
         }
 
         function attemptHack() {
-            var row = document.getElementById('row-' + currentAttemptIndex);
+            var row = document.getElementById('row-' + currentTry);
             var inputs = row.querySelectorAll('.cell-input');
             var guess = "";
             
@@ -183,13 +216,14 @@
             }
 
             if (guess.length < 4) {
-                alert("Брат, введи все 4 цифры перед взломом!");
+                alert("Агент, введите все 4 цифры кода!");
                 return;
             }
 
             var correctCount = 0;
-            var targetCode = levelsInfo[currentLevelIndex].code;
+            var targetCode = levelsData[currentLvl].code;
 
+            // Проверка каждой цифры
             for (var j = 0; j < 4; j++) {
                 if (guess[j] === targetCode[j]) {
                     inputs[j].classList.add('correct');
@@ -199,36 +233,48 @@
                 }
             }
 
+            // Если всё верно
             if (correctCount === 4) {
                 try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
                 
-                document.getElementById('reward-text').innerText = levelsInfo[currentLevelIndex].reward;
-                document.getElementById('clue-text').innerText = levelsInfo[currentLevelIndex].clue;
+                document.getElementById('reward-text').innerText = levelsData[currentLvl].reward;
                 
-                if (currentLevelIndex === 3) {
-                    document.getElementById('modal-title').innerText = "МИССИЯ ВЫПОЛНЕНА";
-                    document.getElementById('next-btn').innerText = "В ГЛАВНОЕ МЕНЮ";
+                var clueContainer = document.getElementById('clue-container');
+                if (currentLvl === 3) {
+                    document.getElementById('modal-title').innerText = "МИССИЯ ЗАВЕРШЕНА";
+                    document.getElementById('modal-title').style.color = "#238636";
+                    document.querySelector('.modal-content').style.borderColor = "#238636";
+                    clueContainer.innerHTML = '<div class="final-congrats">' + levelsData[currentLvl].clue.replace('\n', '<br>') + '</div>';
+                    document.getElementById('next-btn').innerText = "ВЕРНУТЬСЯ НА БАЗУ";
+                    document.getElementById('next-btn').style.background = "#238636";
                 } else {
-                    document.getElementById('modal-title').innerText = "ДОСТУП ПОЛУЧЕН";
-                    document.getElementById('next-btn').innerText = "ПРОДОЛЖИТЬ";
+                    document.getElementById('modal-title').innerText = "СЕЙФ ОТКРЫТ!";
+                    document.getElementById('modal-title').style.color = "#58a6ff";
+                    document.querySelector('.modal-content').style.borderColor = "#58a6ff";
+                    clueContainer.innerHTML = '<div class="clue">Подсказка: ' + levelsData[currentLvl].clue + '</div>';
+                    document.getElementById('next-btn').innerText = "СЛЕДУЮЩИЙ УРОВЕНЬ";
+                    document.getElementById('next-btn').style.background = "#58a6ff";
                 }
+                
                 document.getElementById('modal').style.display = 'flex';
-            } else {
+            } 
+            // Если ошибка
+            else {
                 try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); } catch(e) {}
                 
-                currentAttemptIndex++;
-                if (currentAttemptIndex < 4) {
+                currentTry++;
+                if (currentTry < 4) {
                     row.classList.remove('active');
                     for (var k = 0; k < inputs.length; k++) inputs[k].disabled = true;
                     
-                    var nextRow = document.getElementById('row-' + currentAttemptIndex);
+                    var nextRow = document.getElementById('row-' + currentTry);
                     nextRow.classList.add('active');
                     var nextInputs = nextRow.querySelectorAll('.cell-input');
                     for (var m = 0; m < nextInputs.length; m++) nextInputs[m].disabled = false;
                     
-                    document.getElementById('cell-' + currentAttemptIndex + '-0').focus();
+                    document.getElementById('cell-' + currentTry + '-0').focus();
                 } else {
-                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезапуск уровня...");
+                    alert("ТРЕВОГА! ВЗЛОМ ПРОВАЛЕН! Перезагрузка системы...");
                     resetBoard();
                 }
             }
@@ -236,19 +282,20 @@
 
         function goToNextStage() {
             document.getElementById('modal').style.display = 'none';
-            if (currentLevelIndex === 3) {
-                currentLevelIndex = 0;
+            if (currentLvl === 3) {
+                // Возврат в меню после финала
+                currentLvl = 0;
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('menu-screen').style.display = 'flex';
             } else {
-                currentLevelIndex++;
+                currentLvl++;
                 resetBoard();
             }
         }
 
         function resetBoard() {
-            currentAttemptIndex = 0;
-            document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (currentLevelIndex + 1);
+            currentTry = 0;
+            document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (currentLvl + 1);
             
             for (var r = 0; r < 4; r++) {
                 var row = document.getElementById('row-' + r);
@@ -262,12 +309,13 @@
                     inputs[c].disabled = (r !== 0);
                 }
             }
-            setTimeout(function() { document.getElementById('cell-0-0').focus(); }, 100);
+            
+            // Фокус на первую ячейку с небольшой задержкой для надежности
+            setTimeout(function() { 
+                var firstInput = document.getElementById('cell-0-0');
+                if (firstInput) firstInput.focus(); 
+            }, 100);
         }
-
-        setupInputs();
-        try { tg.ready(); } catch(e) {}
     </script>
 </body>
 </html>
-
