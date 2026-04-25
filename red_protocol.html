@@ -115,23 +115,24 @@
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
+        var tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
 
-        const levels = [
+        // Используем var, чтобы избежать ошибки инициализации (Cannot access before initialization)
+        var levels = [
             { code: "2003", reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" },
             { code: "0453", reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" },
             { code: "6421", reward: "Можно будет играть как от первого так и от третьего лица.", clue: "В каком году вышла первая часть игры Красный протокол?" },
             { code: "2024", reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", clue: "ПОЗДРАВЛЯЕМ! Вы прошли игру, вы знаток серии!" }
         ];
 
-        let curLvl = 0;
-        let curTry = 0;
+        var curLvl = 0;
+        var curTry = 0;
 
         function setupInputs() {
-            const rows = document.querySelectorAll('.row');
+            var rows = document.querySelectorAll('.row');
             rows.forEach((row, rIdx) => {
-                const inputs = row.querySelectorAll('.cell-input');
+                var inputs = row.querySelectorAll('.cell-input');
                 inputs.forEach((input, cIdx) => {
                     input.addEventListener('input', (e) => {
                         if (input.value.length > 1) input.value = input.value.slice(-1);
@@ -150,22 +151,21 @@
             });
         }
 
-        // --- НОВЫЙ ГЛОБАЛЬНЫЙ ПЕРЕХВАТЧИК КЛАВИАТУРЫ (ЛКМ, ENTER, ПРОБЕЛ) ---
+        // Перехватчик Enter и Пробела
         document.addEventListener('keydown', (e) => {
-            // Проверяем, нажаты ли Enter или Пробел
             if (e.key === 'Enter' || e.code === 'Space') {
                 
-                // Если это пробел - блокируем прокрутку страницы вниз
-                if (e.code === 'Space') {
-                    e.preventDefault(); 
-                }
+                // Если пробел нажат внутри поля ввода - игнорируем, чтобы не ломать логику ввода цифр
+                if (e.target.tagName === 'INPUT' && e.code === 'Space') return;
+                
+                if (e.code === 'Space') e.preventDefault(); 
                 
                 if (document.getElementById('modal').style.display === 'flex') {
-                    nextLevel(); // Закрываем окно победы
+                    nextLevel();
                 } else if (document.getElementById('game-screen').style.display === 'flex') {
-                    checkCode(); // Взламываем сейф
+                    checkCode();
                 } else if (document.getElementById('menu-screen').style.display === 'flex') {
-                    startGame(); // Запускаем игру из меню
+                    startGame();
                 }
             }
         });
@@ -177,66 +177,62 @@
         }
 
         function checkCode() {
-            try {
-                const row = document.getElementById('row-' + curTry);
-                const inputs = row.querySelectorAll('.cell-input');
-                let guess = "";
-                inputs.forEach(i => guess += i.value.trim());
+            var row = document.getElementById('row-' + curTry);
+            var inputs = row.querySelectorAll('.cell-input');
+            var guess = "";
+            inputs.forEach(i => guess += i.value.trim());
 
-                if (guess.length < 4) {
-                    alert("Брат, введи все 4 цифры перед взломом!");
-                    return;
-                }
+            if (guess.length < 4) {
+                alert("Брат, введи все 4 цифры перед взломом!");
+                return;
+            }
 
-                let correctCount = 0;
-                const targetCode = levels[curLvl].code;
+            var correctCount = 0;
+            var targetCode = levels[curLvl].code;
 
-                for (let i = 0; i < 4; i++) {
-                    if (guess[i] === targetCode[i]) {
-                        inputs[i].classList.add('correct');
-                        correctCount++;
-                    } else {
-                        inputs[i].classList.add('wrong');
-                    }
-                }
-
-                if (correctCount === 4) {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-                    }
-                    
-                    document.getElementById('reward-text').innerText = levels[curLvl].reward;
-                    document.getElementById('clue-text').innerText = levels[curLvl].clue;
-                    
-                    if (curLvl === 3) {
-                        document.getElementById('modal-title').innerText = "МИССИЯ ВЫПОЛНЕНА";
-                        document.getElementById('next-btn').innerText = "В ГЛАВНОЕ МЕНЮ";
-                    } else {
-                        document.getElementById('modal-title').innerText = "ДОСТУП ПОЛУЧЕН";
-                        document.getElementById('next-btn').innerText = "ПРОДОЛЖИТЬ";
-                    }
-                    
-                    document.getElementById('modal').style.display = 'flex';
+            for (var i = 0; i < 4; i++) {
+                if (guess[i] === targetCode[i]) {
+                    inputs[i].classList.add('correct');
+                    correctCount++;
                 } else {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-                    }
-                    curTry++;
-                    if (curTry < 4) {
-                        row.classList.remove('active');
-                        row.querySelectorAll('.cell-input').forEach(i => i.disabled = true);
-                        
-                        const nextRow = document.getElementById('row-' + curTry);
-                        nextRow.classList.add('active');
-                        nextRow.querySelectorAll('.cell-input').forEach(i => i.disabled = false);
-                        document.getElementById(`cell-${curTry}-0`).focus();
-                    } else {
-                        alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезапуск уровня...");
-                        resetBoard();
-                    }
+                    inputs[i].classList.add('wrong');
                 }
-            } catch (error) {
-                alert("Ошибка взлома: " + error.message);
+            }
+
+            if (correctCount === 4) {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                }
+                
+                document.getElementById('reward-text').innerText = levels[curLvl].reward;
+                document.getElementById('clue-text').innerText = levels[curLvl].clue;
+                
+                if (curLvl === 3) {
+                    document.getElementById('modal-title').innerText = "МИССИЯ ВЫПОЛНЕНА";
+                    document.getElementById('next-btn').innerText = "В ГЛАВНОЕ МЕНЮ";
+                } else {
+                    document.getElementById('modal-title').innerText = "ДОСТУП ПОЛУЧЕН";
+                    document.getElementById('next-btn').innerText = "ПРОДОЛЖИТЬ";
+                }
+                
+                document.getElementById('modal').style.display = 'flex';
+            } else {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+                }
+                curTry++;
+                if (curTry < 4) {
+                    row.classList.remove('active');
+                    row.querySelectorAll('.cell-input').forEach(i => i.disabled = true);
+                    
+                    var nextRow = document.getElementById('row-' + curTry);
+                    nextRow.classList.add('active');
+                    nextRow.querySelectorAll('.cell-input').forEach(i => i.disabled = false);
+                    document.getElementById(`cell-${curTry}-0`).focus();
+                } else {
+                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезапуск уровня...");
+                    resetBoard();
+                }
             }
         }
 
@@ -256,15 +252,15 @@
             curTry = 0;
             document.getElementById('lvl-txt').innerText = "СЕЙФ: УРОВЕНЬ " + (curLvl + 1);
             
-            for (let r = 0; r < 4; r++) {
-                const row = document.getElementById('row-' + r);
+            for (var r = 0; r < 4; r++) {
+                var row = document.getElementById('row-' + r);
                 if (r === 0) {
                     row.classList.add('active');
                 } else {
                     row.classList.remove('active');
                 }
                 
-                const inputs = row.querySelectorAll('.cell-input');
+                var inputs = row.querySelectorAll('.cell-input');
                 inputs.forEach(input => {
                     input.value = '';
                     input.classList.remove('correct', 'wrong');
