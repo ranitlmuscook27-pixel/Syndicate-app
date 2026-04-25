@@ -6,17 +6,14 @@
     <title>Красный Протокол 2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Общие стили */
         body { 
             margin: 0; font-family: 'Courier New', monospace; background: #050505; 
             color: #ff3e3e; overflow: hidden; user-select: none;
         }
         
-        /* Экран Меню */
         #menu-screen { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; text-align: center; padding: 20px; box-sizing: border-box;
-            background: #0d1117;
+            height: 100vh; text-align: center; padding: 20px; box-sizing: border-box; background: #0d1117;
         }
         h1 { font-size: 32px; text-transform: uppercase; text-shadow: 0 0 15px rgba(255,62,62,0.8); margin-bottom: 30px; letter-spacing: 2px;}
         #menu-screen img { 
@@ -24,16 +21,14 @@
             box-shadow: 0 0 25px rgba(255,62,62,0.4); margin-bottom: 40px;
         }
 
-        /* Экран Игры */
         #game-screen { 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; padding: 10px; box-sizing: border-box;
-            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
+            background: linear-gradient(rgba(0,0,0,0.80), rgba(0,0,0,0.80)), 
                         url('https://sun9-18.userapi.com/s/v1/ig2/NIVG7DIPYsNjLIknvm8VPmekoxeUOtMNfvvQxpfrTsbHSCwHPD4koWrMwUSTnBuRpwUVYi0xbaTTF1-npYNpOttD.jpg?quality=95&as=32x20,48x30,72x44,108x67,160x99,240x148,360x222,480x296,540x333,640x395,720x444,1080x667,1244x768&from=bu&u=Lkv39YOdjxq8HNeV8Kxo-8fce0yW4u1eqMz7z3BxNuQ&cs=1244x0') center/cover no-repeat;
         }
         #lvl-txt { font-size: 24px; letter-spacing: 3px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold;}
 
-        /* Сетка сейфа (поля ввода) */
         .safe-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
         .row { display: flex; gap: 12px; opacity: 0.2; pointer-events: none; transition: 0.4s; }
         .row.active { opacity: 1; transform: scale(1.05); pointer-events: auto; }
@@ -47,7 +42,6 @@
         .cell-input.correct { background: #238636 !important; border-color: #238636 !important; color: white; }
         .cell-input.wrong { background: #da3633 !important; border-color: #da3633 !important; color: white; }
 
-        /* Кнопки */
         button { 
             background: #ff3e3e; color: #000; border: none; padding: 18px 0; width: 280px;
             font-family: inherit; font-weight: bold; font-size: 22px; border-radius: 10px; 
@@ -56,7 +50,6 @@
         button:active { transform: scale(0.95); opacity: 0.8; }
         .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); margin-top: 20px; width: 100%;}
 
-        /* Всплывающее окно (Модалка) */
         #modal { 
             display: none; position: fixed; top:0; left:0; width:100%; height:100%; 
             background: rgba(0,0,0,0.92); justify-content: center; align-items: center; 
@@ -75,7 +68,7 @@
 
     <div id="menu-screen">
         <h1>Красный Протокол 2</h1>
-        <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер игры">
+        <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер">
         <button onclick="startGame()">НАЧАТЬ ИГРУ</button>
     </div>
 
@@ -109,80 +102,73 @@
             </div>
         </div>
         
-        <button onclick="verifyCode()">ВЗЛОМАТЬ</button>
+        <button onclick="checkCode()">ВЗЛОМАТЬ</button>
     </div>
 
     <div id="modal">
         <div class="modal-content">
             <h2 id="modal-title">ДОСТУП ПОЛУЧЕН</h2>
             <p id="reward-text"></p>
-            <div id="clue-box" class="clue">
-                <span id="clue-text"></span>
-            </div>
+            <div class="clue"><span id="clue-text"></span></div>
             <button class="btn-blue" id="next-btn" onclick="nextLevel()">ПРОДОЛЖИТЬ</button>
         </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e) {}
 
         const levels = [
-            { 
-                code: "2003", 
-                reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", 
-                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" 
-            },
-            { 
-                code: "0453", 
-                reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", 
-                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" 
-            },
-            { 
-                code: "6421", 
-                reward: "Можно будет играть как от первого так и от третьего лица.", 
-                clue: "В каком году вышла первая часть игры Красный протокол?" 
-            },
-            { 
-                code: "2024", 
-                reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", 
-                clue: "ПОЗДРАВЛЯЕМ! Вы прошли игру, вы знаток серии!" 
-            }
+            { code: "2003", reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" },
+            { code: "0453", reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" },
+            { code: "6421", reward: "Можно будет играть как от первого так и от третьего лица.", clue: "В каком году вышла первая часть игры Красный протокол?" },
+            { code: "2024", reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", clue: "ПОЗДРАВЛЯЕМ! Вы прошли игру, вы знаток серии!" }
         ];
 
         let curLvl = 0;
         let curTry = 0;
 
-        // Настройка умной клавиатуры
         function setupInputs() {
             const rows = document.querySelectorAll('.row');
             rows.forEach((row, rIdx) => {
                 const inputs = row.querySelectorAll('.cell-input');
                 inputs.forEach((input, cIdx) => {
-                    // Авто-переход вперед при вводе
                     input.addEventListener('input', (e) => {
-                        // Защита от длинного текста, оставляем только последнюю цифру
                         if (input.value.length > 1) input.value = input.value.slice(-1);
-                        // Только цифры
                         input.value = input.value.replace(/[^0-9]/g, '');
-                        
                         if (input.value !== '' && cIdx < 3) {
                             document.getElementById(`cell-${rIdx}-${cIdx + 1}`).focus();
                         }
                     });
 
-                    // Удаление Backspace и нажатие Enter
                     input.addEventListener('keydown', (e) => {
                         if (e.key === 'Backspace' && input.value === '' && cIdx > 0) {
                             document.getElementById(`cell-${rIdx}-${cIdx - 1}`).focus();
-                        }
-                        if (e.key === 'Enter') {
-                            verifyCode();
                         }
                     });
                 });
             });
         }
+
+        // --- НОВЫЙ ГЛОБАЛЬНЫЙ ПЕРЕХВАТЧИК КЛАВИАТУРЫ (ЛКМ, ENTER, ПРОБЕЛ) ---
+        document.addEventListener('keydown', (e) => {
+            // Проверяем, нажаты ли Enter или Пробел
+            if (e.key === 'Enter' || e.code === 'Space') {
+                
+                // Если это пробел - блокируем прокрутку страницы вниз
+                if (e.code === 'Space') {
+                    e.preventDefault(); 
+                }
+                
+                if (document.getElementById('modal').style.display === 'flex') {
+                    nextLevel(); // Закрываем окно победы
+                } else if (document.getElementById('game-screen').style.display === 'flex') {
+                    checkCode(); // Взламываем сейф
+                } else if (document.getElementById('menu-screen').style.display === 'flex') {
+                    startGame(); // Запускаем игру из меню
+                }
+            }
+        });
 
         function startGame() {
             document.getElementById('menu-screen').style.display = 'none';
@@ -190,55 +176,67 @@
             resetBoard();
         }
 
-        function verifyCode() {
-            const row = document.getElementById('row-' + curTry);
-            const inputs = row.querySelectorAll('.cell-input');
-            let guess = "";
-            inputs.forEach(i => guess += i.value);
+        function checkCode() {
+            try {
+                const row = document.getElementById('row-' + curTry);
+                const inputs = row.querySelectorAll('.cell-input');
+                let guess = "";
+                inputs.forEach(i => guess += i.value.trim());
 
-            if (guess.length < 4) return; // Не жмем, если введено меньше 4 цифр
-
-            let correctCount = 0;
-            const targetCode = levels[curLvl].code;
-
-            for (let i = 0; i < 4; i++) {
-                if (guess[i] === targetCode[i]) {
-                    inputs[i].classList.add('correct');
-                    correctCount++;
-                } else {
-                    inputs[i].classList.add('wrong');
+                if (guess.length < 4) {
+                    alert("Брат, введи все 4 цифры перед взломом!");
+                    return;
                 }
-            }
 
-            if (correctCount === 4) {
-                tg.HapticFeedback?.notificationOccurred('success');
-                document.getElementById('reward-text').innerText = levels[curLvl].reward;
-                document.getElementById('clue-text').innerText = levels[curLvl].clue;
-                
-                if (curLvl === 3) {
-                    document.getElementById('modal-title').innerText = "МИССИЯ ВЫПОЛНЕНА";
-                    document.getElementById('next-btn').innerText = "В ГЛАВНОЕ МЕНЮ";
-                } else {
-                    document.getElementById('modal-title').innerText = "ДОСТУП ПОЛУЧЕН";
-                    document.getElementById('next-btn').innerText = "ПРОДОЛЖИТЬ";
+                let correctCount = 0;
+                const targetCode = levels[curLvl].code;
+
+                for (let i = 0; i < 4; i++) {
+                    if (guess[i] === targetCode[i]) {
+                        inputs[i].classList.add('correct');
+                        correctCount++;
+                    } else {
+                        inputs[i].classList.add('wrong');
+                    }
                 }
-                
-                document.getElementById('modal').style.display = 'flex';
-            } else {
-                tg.HapticFeedback?.notificationOccurred('error');
-                curTry++;
-                if (curTry < 4) {
-                    row.classList.remove('active');
-                    row.querySelectorAll('.cell-input').forEach(i => i.disabled = true);
+
+                if (correctCount === 4) {
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                    }
                     
-                    const nextRow = document.getElementById('row-' + curTry);
-                    nextRow.classList.add('active');
-                    nextRow.querySelectorAll('.cell-input').forEach(i => i.disabled = false);
-                    document.getElementById(`cell-${curTry}-0`).focus();
+                    document.getElementById('reward-text').innerText = levels[curLvl].reward;
+                    document.getElementById('clue-text').innerText = levels[curLvl].clue;
+                    
+                    if (curLvl === 3) {
+                        document.getElementById('modal-title').innerText = "МИССИЯ ВЫПОЛНЕНА";
+                        document.getElementById('next-btn').innerText = "В ГЛАВНОЕ МЕНЮ";
+                    } else {
+                        document.getElementById('modal-title').innerText = "ДОСТУП ПОЛУЧЕН";
+                        document.getElementById('next-btn').innerText = "ПРОДОЛЖИТЬ";
+                    }
+                    
+                    document.getElementById('modal').style.display = 'flex';
                 } else {
-                    alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезапуск сейфа...");
-                    resetBoard();
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+                    }
+                    curTry++;
+                    if (curTry < 4) {
+                        row.classList.remove('active');
+                        row.querySelectorAll('.cell-input').forEach(i => i.disabled = true);
+                        
+                        const nextRow = document.getElementById('row-' + curTry);
+                        nextRow.classList.add('active');
+                        nextRow.querySelectorAll('.cell-input').forEach(i => i.disabled = false);
+                        document.getElementById(`cell-${curTry}-0`).focus();
+                    } else {
+                        alert("СИСТЕМА ЗАБЛОКИРОВАНА! Перезапуск уровня...");
+                        resetBoard();
+                    }
                 }
+            } catch (error) {
+                alert("Ошибка взлома: " + error.message);
             }
         }
 
@@ -273,13 +271,11 @@
                     input.disabled = (r !== 0);
                 });
             }
-            // Даем фокус на первую клетку первой строки
             setTimeout(() => document.getElementById('cell-0-0').focus(), 100);
         }
 
-        // Запуск настройки клавиатуры при старте
         setupInputs();
-        tg.ready();
+        try { tg.ready(); } catch(e) {}
     </script>
 </body>
 </html>
