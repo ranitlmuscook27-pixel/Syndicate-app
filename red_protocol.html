@@ -30,7 +30,7 @@
                         url('https://sun9-18.userapi.com/s/v1/ig2/NIVG7DIPYsNjLIknvm8VPmekoxeUOtMNfvvQxpfrTsbHSCwHPD4koWrMwUSTnBuRpwUVYi0xbaTTF1-npYNpOttD.jpg?quality=95&as=32x20,48x30,72x44,108x67,160x99,240x148,360x222,480x296,540x333,640x395,720x444,1080x667,1244x768&from=bu&u=Lkv39YOdjxq8HNeV8Kxo-8fce0yW4u1eqMz7z3BxNuQ&cs=1244x0') center/cover no-repeat;
         }
         #lvl-txt { font-size: 26px; letter-spacing: 3px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold; text-shadow: 0 0 10px #ff3e3e;}
-        .version { font-size: 10px; color: #555; position: absolute; top: 10px; right: 10px; }
+        .version { font-size: 12px; color: #555; position: absolute; top: 10px; right: 10px; font-weight: bold; }
 
         /* Сетка сейфа */
         .safe-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
@@ -73,12 +73,12 @@
     </style>
 </head>
 <body>
-    <div class="version">v5.0</div>
+    <div class="version">v7.0</div>
 
     <div id="menu-screen">
         <h1>Красный Протокол 2</h1>
         <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер">
-        <button id="btn-start" onclick="startGame()">НАЧАТЬ ИГРУ</button>
+        <button id="btn-start">НАЧАТЬ ИГРУ</button>
     </div>
 
     <div id="game-screen">
@@ -109,7 +109,7 @@
                 <input type="text" class="cell-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" id="cell-3-3" disabled>
             </div>
         </div>
-        <button id="btn-hack" onclick="attemptHack()">ВЗЛОМАТЬ СЕЙФ</button>
+        <button id="btn-hack">ВЗЛОМАТЬ СЕЙФ</button>
     </div>
 
     <div id="modal">
@@ -117,13 +117,16 @@
             <h2 id="modal-title">СЕЙФ ОТКРЫТ!</h2>
             <p id="reward-text"></p>
             <div id="clue-container"></div>
-            <button class="btn-blue" id="next-btn" onclick="goToNextStage()">ПРОДОЛЖИТЬ</button>
+            <button class="btn-blue" id="next-btn">ПРОДОЛЖИТЬ</button>
         </div>
     </div>
 
     <script>
-        var tg = window.Telegram.WebApp;
-        try { tg.expand(); } catch(e) {}
+        // Инициализация Telegram Web App (чисто для дизайна окна, без лишних функций)
+        try { 
+            var tg = window.Telegram.WebApp;
+            if (tg) tg.expand(); 
+        } catch (e) {}
 
         // База данных игры
         var levelsData = [
@@ -152,23 +155,24 @@
         var currentLvl = 0;
         var currentTry = 0;
 
+        // ПРИВЯЗКА КНОПОК
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        document.getElementById('btn-hack').addEventListener('click', attemptHack);
+        document.getElementById('next-btn').addEventListener('click', goToNextStage);
+
         // Настройка полей ввода
         var rows = document.querySelectorAll('.row');
         for (var r = 0; r < rows.length; r++) {
             var inputs = rows[r].querySelectorAll('.cell-input');
             for (var c = 0; c < inputs.length; c++) {
                 (function(rowIdx, colIdx, inputField) {
-                    // Ввод цифры и авто-переход
                     inputField.addEventListener('input', function() {
-                        inputField.value = inputField.value.replace(/[^0-9]/g, ''); // Только цифры
+                        inputField.value = inputField.value.replace(/[^0-9]/g, ''); 
                         if (inputField.value.length > 1) inputField.value = inputField.value.slice(-1);
-                        
                         if (inputField.value !== '' && colIdx < 3) {
                             document.getElementById('cell-' + rowIdx + '-' + (colIdx + 1)).focus();
                         }
                     });
-                    
-                    // Удаление и возврат назад
                     inputField.addEventListener('keydown', function(e) {
                         if (e.key === 'Backspace' && inputField.value === '' && colIdx > 0) {
                             document.getElementById('cell-' + rowIdx + '-' + (colIdx - 1)).focus();
@@ -181,20 +185,17 @@
         // Глобальный слушатель кнопок: Enter и Пробел
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.code === 'Space') {
-                
-                // Предотвращаем скроллинг страницы пробелом
+                if (e.target.tagName === 'INPUT' && e.code === 'Space') {
+                    e.preventDefault();
+                    return;
+                }
                 if (e.code === 'Space') e.preventDefault(); 
                 
-                // Если открыто всплывающее окно - закрываем его
                 if (document.getElementById('modal').style.display === 'flex') {
                     goToNextStage();
-                } 
-                // Если мы в игре - взламываем
-                else if (document.getElementById('game-screen').style.display === 'flex') {
+                } else if (document.getElementById('game-screen').style.display === 'flex') {
                     attemptHack();
-                } 
-                // Если мы в меню - начинаем
-                else if (document.getElementById('menu-screen').style.display === 'flex') {
+                } else if (document.getElementById('menu-screen').style.display === 'flex') {
                     startGame();
                 }
             }
@@ -223,7 +224,6 @@
             var correctCount = 0;
             var targetCode = levelsData[currentLvl].code;
 
-            // Проверка каждой цифры
             for (var j = 0; j < 4; j++) {
                 if (guess[j] === targetCode[j]) {
                     inputs[j].classList.add('correct');
@@ -233,10 +233,7 @@
                 }
             }
 
-            // Если всё верно
             if (correctCount === 4) {
-                try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
-                
                 document.getElementById('reward-text').innerText = levelsData[currentLvl].reward;
                 
                 var clueContainer = document.getElementById('clue-container');
@@ -257,11 +254,7 @@
                 }
                 
                 document.getElementById('modal').style.display = 'flex';
-            } 
-            // Если ошибка
-            else {
-                try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error'); } catch(e) {}
-                
+            } else {
                 currentTry++;
                 if (currentTry < 4) {
                     row.classList.remove('active');
@@ -283,7 +276,6 @@
         function goToNextStage() {
             document.getElementById('modal').style.display = 'none';
             if (currentLvl === 3) {
-                // Возврат в меню после финала
                 currentLvl = 0;
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('menu-screen').style.display = 'flex';
@@ -309,8 +301,6 @@
                     inputs[c].disabled = (r !== 0);
                 }
             }
-            
-            // Фокус на первую ячейку с небольшой задержкой для надежности
             setTimeout(function() { 
                 var firstInput = document.getElementById('cell-0-0');
                 if (firstInput) firstInput.focus(); 
