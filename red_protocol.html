@@ -53,8 +53,8 @@
             cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,62,62,0.5); transition: 0.2s; margin-top: 10px;
         }
         button:active { transform: scale(0.95); opacity: 0.8; }
-        .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); width: 100%;}
-        .btn-dark { background: #333; color: white; box-shadow: none; margin-top: 15px; }
+        .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); width: 280px;}
+        .btn-dark { background: #333; color: white; box-shadow: none; border: 1px solid #555; width: 280px;}
 
         /* Модальное окно */
         #modal { 
@@ -65,6 +65,7 @@
         .modal-content { 
             background: #0d1117; border: 2px solid #58a6ff; padding: 30px; 
             border-radius: 15px; max-width: 350px; text-align: center; color: white;
+            display: flex; flex-direction: column; align-items: center;
         }
         .modal-content h2 { color: #58a6ff; margin-top: 0; font-size: 24px; text-transform: uppercase; }
         .modal-content p { font-size: 16px; line-height: 1.5; margin-bottom: 20px;}
@@ -75,13 +76,13 @@
     </style>
 </head>
 <body>
-    <div class="version">v8.0 (Экономика)</div>
+    <div class="version">v8.3 (Экономика + Навигация)</div>
 
     <div id="menu-screen">
         <h1>Красный Протокол 2</h1>
         <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер">
         <button id="btn-start">НАЧАТЬ ИГРУ</button>
-        <button class="btn-dark" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ</button>
+        <button class="btn-dark" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ ХАБА</button>
     </div>
 
     <div id="game-screen">
@@ -113,6 +114,7 @@
             </div>
         </div>
         <button id="btn-hack">ВЗЛОМАТЬ СЕЙФ</button>
+        <button class="btn-dark" id="btn-back-game-menu">В МЕНЮ ИГРЫ</button>
     </div>
 
     <div id="modal">
@@ -122,17 +124,16 @@
             <p id="reward-text"></p>
             <div id="clue-container"></div>
             <button class="btn-blue" id="next-btn">ПРОДОЛЖИТЬ</button>
+            <button class="btn-dark" id="modal-back-btn" style="margin-top: 10px; font-size: 18px; padding: 12px 0;">В МЕНЮ ИГРЫ</button>
         </div>
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         try { 
             var tg = window.Telegram.WebApp;
             if (tg) tg.expand(); 
         } catch (e) {}
 
-        // База данных игры + ЭКОНОМИКА (монеты за каждый уровень)
         var levelsData = [
             { 
                 code: "2003", 
@@ -163,12 +164,31 @@
         var currentLvl = 0;
         var currentTry = 0;
 
-        // ПРИВЯЗКА КНОПОК
         document.getElementById('btn-start').addEventListener('click', startGame);
         document.getElementById('btn-hack').addEventListener('click', attemptHack);
         document.getElementById('next-btn').addEventListener('click', goToNextStage);
+        
+        // ВЫХОД ВО ВРЕМЯ УРОВНЯ
+        document.getElementById('btn-back-game-menu').addEventListener('click', function() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'flex';
+        });
 
-        // Настройка полей ввода
+        // ВЫХОД ИЗ МОДАЛЬНОГО ОКНА ПРИ ПОБЕДЕ
+        document.getElementById('modal-back-btn').addEventListener('click', function() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'flex';
+            
+            // Если вышли после победы, повышаем уровень для следующего старта (если не финал)
+            if (currentLvl < 3) {
+                currentLvl++;
+            } else {
+                currentLvl = 0;
+            }
+            resetBoard();
+        });
+
         var rows = document.querySelectorAll('.row');
         for (var r = 0; r < rows.length; r++) {
             var inputs = rows[r].querySelectorAll('.cell-input');
@@ -190,7 +210,6 @@
             }
         }
 
-        // Глобальный слушатель кнопок: Enter и Пробел
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.code === 'Space') {
                 if (e.target.tagName === 'INPUT' && e.code === 'Space') {
@@ -242,16 +261,16 @@
             }
 
             if (correctCount === 4) {
-                // НАЧИСЛЕНИЕ МОНЕТ 💰
                 var earnedCoins = levelsData[currentLvl].coins;
                 var currentBalance = parseInt(localStorage.getItem('syndicate_coins') || "0");
                 localStorage.setItem('syndicate_coins', currentBalance + earnedCoins);
 
-                // ОТОБРАЖЕНИЕ НАГРАДЫ
                 document.getElementById('coin-reward-text').innerText = "НАГРАДА: +" + earnedCoins + " SC 💎";
                 document.getElementById('reward-text').innerText = levelsData[currentLvl].reward;
                 
                 var clueContainer = document.getElementById('clue-container');
+                var modalBackBtn = document.getElementById('modal-back-btn');
+                
                 if (currentLvl === 3) {
                     document.getElementById('modal-title').innerText = "МИССИЯ ЗАВЕРШЕНА";
                     document.getElementById('modal-title').style.color = "#238636";
@@ -259,6 +278,7 @@
                     clueContainer.innerHTML = '<div class="final-congrats">' + levelsData[currentLvl].clue.replace('\n', '<br>') + '</div>';
                     document.getElementById('next-btn').innerText = "ВЕРНУТЬСЯ В ХАБ";
                     document.getElementById('next-btn').style.background = "#238636";
+                    modalBackBtn.style.display = 'none'; // В финале оставляем одну кнопку
                 } else {
                     document.getElementById('modal-title').innerText = "СЕЙФ ОТКРЫТ!";
                     document.getElementById('modal-title').style.color = "#58a6ff";
@@ -266,6 +286,7 @@
                     clueContainer.innerHTML = '<div class="clue">Подсказка: ' + levelsData[currentLvl].clue + '</div>';
                     document.getElementById('next-btn').innerText = "СЛЕДУЮЩИЙ УРОВЕНЬ";
                     document.getElementById('next-btn').style.background = "#58a6ff";
+                    modalBackBtn.style.display = 'block'; // Показываем кнопку возврата
                 }
                 
                 document.getElementById('modal').style.display = 'flex';
@@ -292,7 +313,6 @@
             document.getElementById('modal').style.display = 'none';
             if (currentLvl === 3) {
                 currentLvl = 0;
-                // После финала отправляем игрока обратно в Главное Меню Хаба с деньгами
                 window.location.href = 'index.html';
             } else {
                 currentLvl++;
