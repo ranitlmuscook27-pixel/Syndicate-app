@@ -54,6 +54,7 @@
         }
         button:active { transform: scale(0.95); opacity: 0.8; }
         .btn-blue { background: #58a6ff; color: #000; box-shadow: 0 0 20px rgba(88,166,255,0.5); width: 100%;}
+        .btn-dark { background: #333; color: white; box-shadow: none; margin-top: 15px; }
 
         /* Модальное окно */
         #modal { 
@@ -70,15 +71,17 @@
         .clue { color: #ff9d00; border-top: 1px solid #333; padding-top: 15px; margin-bottom: 20px; font-size: 15px; font-style: italic; }
         
         .final-congrats { color: #238636; font-size: 18px; font-weight: bold; text-shadow: 0 0 10px #238636; border-top: 1px solid #333; padding-top: 15px; margin-bottom: 20px;}
+        #coin-reward-text { color: #ff9d00; font-size: 20px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255,157,0,0.5); }
     </style>
 </head>
 <body>
-    <div class="version">v7.0</div>
+    <div class="version">v8.0 (Экономика)</div>
 
     <div id="menu-screen">
         <h1>Красный Протокол 2</h1>
         <img src="https://sun9-61.userapi.com/s/v1/ig2/08Z4TORIEHyY38fX1IMH18fOAHCp7apVMMTjUEdE5O1Ru01LjqcN5uU1EJFDDbkZBz07rKKODj0Zs2914VeWpJpU.jpg?quality=95&as=32x20,48x31,72x46,108x69,160x102,240x153,360x230,480x306,540x344,640x408,720x459,1080x689,1176x750&from=bu&u=RFfxfTQ267QIg_GGvrimXQaDP-YdnjFoYQg5YsBAqAk&cs=1176x0" alt="Постер">
         <button id="btn-start">НАЧАТЬ ИГРУ</button>
+        <button class="btn-dark" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ</button>
     </div>
 
     <div id="game-screen">
@@ -115,6 +118,7 @@
     <div id="modal">
         <div class="modal-content">
             <h2 id="modal-title">СЕЙФ ОТКРЫТ!</h2>
+            <p id="coin-reward-text"></p>
             <p id="reward-text"></p>
             <div id="clue-container"></div>
             <button class="btn-blue" id="next-btn">ПРОДОЛЖИТЬ</button>
@@ -122,33 +126,37 @@
     </div>
 
     <script>
-        // Инициализация Telegram Web App (чисто для дизайна окна, без лишних функций)
+        // Инициализация Telegram Web App
         try { 
             var tg = window.Telegram.WebApp;
             if (tg) tg.expand(); 
         } catch (e) {}
 
-        // База данных игры
+        // База данных игры + ЭКОНОМИКА (монеты за каждый уровень)
         var levelsData = [
             { 
                 code: "2003", 
                 reward: "Можно будет играть на биржевом рынке, скупать криптовалюты, дорогие металлы, и влиять на будущий мир.", 
-                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?" 
+                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в кулинарном колледже?",
+                coins: 10
             },
             { 
                 code: "0453", 
                 reward: "Будет открытый мир на Ближнем Востоке (будут доступны 4 страны: Катар, Саудовская Аравия, Иран, Ирак).", 
-                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?" 
+                clue: "Какой номер группы был у основателя компании Syndicate Games Studio в технологическом институте?",
+                coins: 50
             },
             { 
                 code: "6421", 
                 reward: "Можно будет играть как от первого так и от третьего лица.", 
-                clue: "В каком году вышла первая часть игры Красный протокол?" 
+                clue: "В каком году вышла первая часть игры Красный протокол?",
+                coins: 100
             },
             { 
                 code: "2024", 
                 reward: "Можно будет водить автомобили и летать на самолете, вертолете, брать катера.", 
-                clue: "ПОЗДРАВЛЯЕМ!\nВы прошли игру, вы истинный знаток серии Syndicate Games!" 
+                clue: "ПОЗДРАВЛЯЕМ!\nВы прошли игру, вы истинный знаток серии Syndicate Games!",
+                coins: 250
             }
         ];
 
@@ -234,6 +242,13 @@
             }
 
             if (correctCount === 4) {
+                // НАЧИСЛЕНИЕ МОНЕТ 💰
+                var earnedCoins = levelsData[currentLvl].coins;
+                var currentBalance = parseInt(localStorage.getItem('syndicate_coins') || "0");
+                localStorage.setItem('syndicate_coins', currentBalance + earnedCoins);
+
+                // ОТОБРАЖЕНИЕ НАГРАДЫ
+                document.getElementById('coin-reward-text').innerText = "НАГРАДА: +" + earnedCoins + " SC 💎";
                 document.getElementById('reward-text').innerText = levelsData[currentLvl].reward;
                 
                 var clueContainer = document.getElementById('clue-container');
@@ -242,7 +257,7 @@
                     document.getElementById('modal-title').style.color = "#238636";
                     document.querySelector('.modal-content').style.borderColor = "#238636";
                     clueContainer.innerHTML = '<div class="final-congrats">' + levelsData[currentLvl].clue.replace('\n', '<br>') + '</div>';
-                    document.getElementById('next-btn').innerText = "ВЕРНУТЬСЯ НА БАЗУ";
+                    document.getElementById('next-btn').innerText = "ВЕРНУТЬСЯ В ХАБ";
                     document.getElementById('next-btn').style.background = "#238636";
                 } else {
                     document.getElementById('modal-title').innerText = "СЕЙФ ОТКРЫТ!";
@@ -277,8 +292,8 @@
             document.getElementById('modal').style.display = 'none';
             if (currentLvl === 3) {
                 currentLvl = 0;
-                document.getElementById('game-screen').style.display = 'none';
-                document.getElementById('menu-screen').style.display = 'flex';
+                // После финала отправляем игрока обратно в Главное Меню Хаба с деньгами
+                window.location.href = 'index.html';
             } else {
                 currentLvl++;
                 resetBoard();
