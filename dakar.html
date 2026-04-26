@@ -27,7 +27,7 @@
         button:active { transform: scale(0.95); opacity: 0.8; }
         .btn-blue { background: #58a6ff; box-shadow: 0 0 15px rgba(88,166,255,0.4); }
         .btn-green { background: #238636; box-shadow: 0 0 15px rgba(35,134,54,0.4); color: #fff;}
-        .btn-dark { background: #333; color: white; box-shadow: none; margin-bottom: 5px; border: 1px solid #55;}
+        .btn-dark { background: #333; color: white; box-shadow: none; margin-bottom: 5px; border: 1px solid #555;}
 
         .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; margin-bottom: 20px;}
         .lvl-btn { padding: 15px 0; font-size: 18px; width: 100%; margin-bottom: 0;}
@@ -67,13 +67,13 @@
     </style>
 </head>
 <body>
-    <div class="version">Dakar v4.1</div>
+    <div class="version">Dakar v4.2</div>
 
     <div id="screen-login" class="screen active-screen">
         <h1>🚚 ДАКАР 28</h1>
         <img src="https://sun9-37.userapi.com/s/v1/ig2/gWl4OeXXhkpU9b88QNgFK9z3Dmd5VjW71fzRta7uValPP4BOiUFR2uX63_hU1IjWeCnQV8m-hLNyL7Ix-PnXX63J.jpg?quality=95&as=32x57,48x86,72x129,108x193,160x287,240x430,360x645,480x860,540x967,640x1147,720x1290,768x1376&from=bu&u=9K3N3ebjVckl_TI4U2gX5HBu62GBMRKaKGhzqQjsUf0&cs=768x0" alt="Постер Дакар 28" class="game-poster">
         <button class="btn-blue" onclick="switchScreen('screen-difficulty')">ПРОДОЛЖИТЬ</button>
-        <button class="btn-dark" onclick="window.location.href='index.html'">НАЗАД В МИНИ-ИГРЫ</button>
+        <button class="btn-dark" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ ХАБА</button>
     </div>
 
     <div id="screen-difficulty" class="screen">
@@ -98,8 +98,8 @@
         <h1 id="result-title">ПОТРАЧЕНО</h1>
         <p id="result-time" style="font-size: 20px; color: #58a6ff; margin-bottom: 10px;"></p>
         <p id="result-reward"></p>
-        <button class="btn-blue" onclick="switchScreen('screen-difficulty')">ИГРАТЬ ЕЩЕ РАЗ</button>
-        <button class="btn-dark" style="margin-top: 10px;" onclick="window.location.href='index.html'">НАЗАД В МИНИ-ИГРЫ</button>
+        <button class="btn-blue" onclick="switchScreen('screen-difficulty')">МЕНЮ УРОВНЕЙ</button>
+        <button class="btn-dark" style="margin-top: 10px;" onclick="switchScreen('screen-login')">НАЗАД В МЕНЮ ИГРЫ</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -137,7 +137,7 @@
         var gameLoopId;
         var keys = { gas: false, brake: false };
         
-        // Обработчики для новых кнопок-педалей
+        // Обработчики для педалей
         document.getElementById('zone-gas').addEventListener('mousedown', () => keys.gas = true);
         document.getElementById('zone-gas').addEventListener('mouseup', () => keys.gas = false);
         document.getElementById('zone-gas').addEventListener('mouseleave', () => keys.gas = false);
@@ -150,7 +150,7 @@
         document.getElementById('zone-brake').addEventListener('touchstart', (e) => { e.preventDefault(); keys.brake = true; }, {passive: false});
         document.getElementById('zone-brake').addEventListener('touchend', (e) => { e.preventDefault(); keys.brake = false; }, {passive: false});
 
-        // Клавиатура для ПК по-прежнему работает
+        // Клавиатура для ПК
         window.addEventListener('keydown', (e) => {
             if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.gas = true;
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.brake = true;
