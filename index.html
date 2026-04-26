@@ -2,73 +2,195 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syndicate Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Syndicate Games Studio Hub</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --accent: #58a6ff; --success: #238636; --text: #c9d1d9; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .header { text-align: left; margin-bottom: 30px; border-bottom: 1px solid #30363d; padding-bottom: 15px; }
-        .user-info { font-size: 18px; font-weight: bold; }
-        .progress-bar { height: 8px; background: #30363d; border-radius: 4px; margin: 15px 0; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { 
-            background: var(--card); border: 1px solid #30363d; border-radius: 12px; padding: 20px; 
-            text-align: center; position: relative; transition: 0.2s; text-decoration: none; color: inherit;
+        body { 
+            margin: 0; font-family: 'Courier New', monospace; background: #050505; 
+            color: #fff; overflow-x: hidden; user-select: none;
         }
-        .card.done { border-color: var(--success); }
-        .card.done::after { content: "✅"; position: absolute; top: 5px; right: 5px; font-size: 12px; }
-        .preorder-section { margin-top: 30px; display: none; background: #1c1c1e; padding: 20px; border-radius: 12px; border: 1px solid #ff9d00; }
-        .btn-main { background: #ff9d00; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 16px; font-weight: bold; }
+        
+        /* Основной контейнер Хаба */
+        #hub-container {
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; box-sizing: border-box; min-height: 100vh;
+            background: radial-gradient(circle at center, #1a1a24 0%, #050505 100%);
+        }
+
+        /* Шапка */
+        .header { text-align: center; margin-bottom: 30px; margin-top: 10px; width: 100%; max-width: 400px; }
+        .header h1 { font-size: 22px; color: #fff; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .header span { color: #ff3e3e; font-size: 26px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 15px rgba(255,62,62,0.8); display: block; margin-top: 5px; }
+        
+        .logo-img { 
+            width: 100%; border-radius: 12px; border: 2px solid #ff3e3e; 
+            box-shadow: 0 0 25px rgba(255,62,62,0.3);
+        }
+
+        /* Главное меню кнопок */
+        .menu-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; }
+        
+        .btn-main {
+            background: #0d1117; color: #ff3e3e; border: 1px solid #ff3e3e; padding: 18px; 
+            font-family: inherit; font-weight: bold; font-size: 18px; border-radius: 10px; 
+            cursor: pointer; text-transform: uppercase; transition: 0.3s;
+            box-shadow: inset 0 0 10px rgba(255,0,0,0.1);
+        }
+        .btn-main:hover, .btn-main:active { background: #ff3e3e; color: #000; box-shadow: 0 0 20px rgba(255,62,62,0.6); }
+
+        /* Экраны разделов (скрыты по умолчанию) */
+        .section-screen { 
+            display: none; flex-direction: column; align-items: center; 
+            width: 100%; max-width: 400px; margin-top: 20px; animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { color: #58a6ff; font-size: 24px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 2px solid #58a6ff; padding-bottom: 5px; width: 100%; text-align: center; }
+
+        /* Карточки Игр */
+        .game-card {
+            background: #111; border: 1px solid #333; padding: 15px; border-radius: 10px;
+            margin-bottom: 15px; width: 100%; box-sizing: border-box; cursor: pointer; transition: 0.3s;
+        }
+        .game-card.active-game { border-color: #238636; box-shadow: 0 0 15px rgba(35,134,54,0.3); }
+        .game-card.active-game:active { transform: scale(0.98); background: #238636; }
+        .game-card.locked { opacity: 0.6; cursor: not-allowed; }
+        
+        .game-title { font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #fff; }
+        .game-desc { font-size: 14px; color: #aaa; line-height: 1.4; }
+        .game-status { margin-top: 10px; font-size: 14px; font-weight: bold; }
+        .status-ready { color: #238636; }
+        .status-dev { color: #ff9d00; }
+
+        /* Карточки Инфо (Биржа, Роадмап) */
+        .info-box { background: #111; border: 1px solid #444; padding: 20px; border-radius: 10px; text-align: center; color: #ccc; line-height: 1.6; width: 100%; box-sizing: border-box;}
+        .info-box h3 { color: #ff9d00; margin-top: 0; }
+
+        .btn-back { background: #555; color: #fff; border: none; padding: 15px; font-family: inherit; font-weight: bold; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; text-transform: uppercase; }
+        .btn-back:active { background: #777; }
+
+        .version { font-size: 10px; color: #444; position: absolute; top: 10px; right: 10px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="user-info" id="user-name">Загрузка...</div>
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
-        <small id="status-text">Миссий завершено: 0 из 4</small>
-    </div>
+    <div class="version">Hub v1.0</div>
 
-    <div class="grid">
-        <a href="red_protocol.html" class="card" id="game-1">
-            <div style="font-size: 30px;">🔫</div>
-            <h4>Красный протокол 2</h4>
-        </a>
-        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
-        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
-        <div class="card" style="opacity: 0.5;"><h4>Скоро...</h4></div>
-    </div>
+    <div id="hub-container">
+        
+        <div id="main-menu">
+            <div class="header">
+                <h1>Добро пожаловать в мир<br><span>Syndicate Games Studio</span></h1>
+                <img src="https://sun9-15.userapi.com/s/v1/ig2/eHggZ9epV8ccWnSypRmknQeDpu2aeWNCtCaZ7P7tTkqCZkBUUeMU29PNnTRwhKhjGNtTGZUPuzjQsTTRMFzQBT9t.jpg?quality=95&as=32x17,48x26,72x39,108x59,160x87,240x131,360x196,480x262,540x295,640x349,720x393,1080x589,1280x698,1408x768&from=bu&u=-FktBFhyP8WevcaD9T1dDnlTXlGIW6bxMKPvGPC7OPw&cs=1408x0" alt="Логотип студии" class="logo-img">
+            </div>
 
-    <div id="preorder-block" class="preorder-section">
-        <h3>🎉 Квест пройден!</h3>
-        <p>Вы настоящий фанат Syndicate Games.</p>
-        <button class="btn-main" onclick="finish()">ОФОРМИТЬ ПРЕДЗАКАЗ</button>
+            <div class="menu-grid">
+                <button class="btn-main" onclick="openSection('games-section')">🎮 Наши мини-игры</button>
+                <button class="btn-main" onclick="openSection('exchange-section')">💎 Биржа Синдиката</button>
+                <button class="btn-main" onclick="openSection('roadmap-section')">🗺️ Дорожная карта</button>
+                <button class="btn-main" onclick="openSection('preorder-section')">💳 Оформить предзаказ</button>
+            </div>
+        </div>
+
+        <div id="games-section" class="section-screen">
+            <div class="section-title">Каталог игр</div>
+            
+            <div class="game-card active-game" onclick="launchGame('red_protocol.html')">
+                <div class="game-title">Красный протокол 2</div>
+                <div class="game-desc">Взломай сейф, разгадай шифр и получи доступ к секретным данным Синдиката.</div>
+                <div class="game-status status-ready">▶ ИГРАТЬ СЕЙЧАС</div>
+            </div>
+
+            <div class="game-card locked">
+                <div class="game-title">🚚 Дакар 28</div>
+                <div class="game-desc">Хардкорные гонки на Камазах. Жми на газ, контролируй тормоз, покоряй дюны.</div>
+                <div class="game-status status-dev">⚙ В РАЗРАБОТКЕ</div>
+            </div>
+
+            <div class="game-card locked">
+                <div class="game-title">🏀 Syndicate Hoops 28</div>
+                <div class="game-desc">Баскетбольный симулятор. Выбери команду и забрось победный мяч в кольцо.</div>
+                <div class="game-status status-dev">⚙ В РАЗРАБОТКЕ</div>
+            </div>
+
+            <div class="game-card locked">
+                <div class="game-title">⚽️ Мундиаль 26</div>
+                <div class="game-desc">Футбольная битва. Выбери сборную и пробей идеальный пенальти в девятку.</div>
+                <div class="game-status status-dev">⚙ В РАЗРАБОТКЕ</div>
+            </div>
+
+            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+        </div>
+
+        <div id="exchange-section" class="section-screen">
+            <div class="section-title">Биржа Синдиката</div>
+            <div class="info-box">
+                <h3>Внутренняя Экосистема</h3>
+                <p>Здесь Агенты смогут зарабатывать баллы и криптовалюту за прохождение мини-игр.</p>
+                <p>Активы можно будет обменивать на скидки при предзаказе, уникальные скины или влияние на сюжет будущих проектов.</p>
+                <br>
+                <span class="status-dev">ОТКРЫТИЕ ТОРГОВ СКОРО...</span>
+            </div>
+            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+        </div>
+
+        <div id="roadmap-section" class="section-screen">
+            <div class="section-title">План Студии</div>
+            <div class="info-box" style="text-align: left;">
+                <p>✅ <b>Этап 1:</b> Запуск Хаба Syndicate Games.</p>
+                <p>✅ <b>Этап 2:</b> Релиз мини-игры "Красный протокол 2".</p>
+                <p>⏳ <b>Этап 3:</b> Разработка спорт-симуляторов (Hoops 28, Мундиаль 26) и гонок (Дакар 28).</p>
+                <p>⏳ <b>Этап 4:</b> Открытие Биржи Синдиката.</p>
+                <p>⏳ <b>Этап 5:</b> Запуск предзаказов на флагманские проекты.</p>
+            </div>
+            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+        </div>
+
+        <div id="preorder-section" class="section-screen">
+            <div class="section-title">Предзаказ</div>
+            <div class="info-box">
+                <h3>Поддержи разработку</h3>
+                <p>Оформление предзаказов будет доступно после официального трейлера Красного Протокола 2.</p>
+                <p>Владельцы предзаказа получат статус "Элитный Агент" в нашем Хабе.</p>
+            </div>
+            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+        </div>
+
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        document.getElementById("user-name").innerText = "Агент: " + (tg.initDataUnsafe?.user?.first_name || "Incognito");
+        // Инициализация Telegram
+        try { 
+            var tg = window.Telegram.WebApp;
+            if (tg) tg.expand(); 
+        } catch (e) {}
 
-        // Проверка прогресса
-        let gamesDone = JSON.parse(localStorage.getItem('syndicate_progress') || '[]');
-        gamesDone.forEach(id => {
-            let el = document.getElementById(id);
-            if(el) el.classList.add('done');
-        });
-
-        let percent = (gamesDone.length / 1) * 100; // Пока считаем от 1 игры
-        document.getElementById("progress").style.width = percent + "%";
-        document.getElementById("status-text").innerText = "Миссий завершено: " + gamesDone.length + " из 1";
-
-        if(gamesDone.length >= 1) document.getElementById("preorder-block").style.display = "block";
-
-        function finish() {
-            tg.sendData("PREORDER_CONFIRMED");
-            tg.close();
+        // Функция открытия разделов
+        function openSection(sectionId) {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('games-section').style.display = 'none';
+            document.getElementById('exchange-section').style.display = 'none';
+            document.getElementById('roadmap-section').style.display = 'none';
+            document.getElementById('preorder-section').style.display = 'none';
+            
+            document.getElementById(sectionId).style.display = 'flex';
         }
-        tg.ready();
+
+        // Возврат в главное меню
+        function goBack() {
+            document.getElementById('games-section').style.display = 'none';
+            document.getElementById('exchange-section').style.display = 'none';
+            document.getElementById('roadmap-section').style.display = 'none';
+            document.getElementById('preorder-section').style.display = 'none';
+            
+            document.getElementById('main-menu').style.display = 'block';
+        }
+
+        // Запуск мини-игры (переход на другой файл)
+        function launchGame(url) {
+            window.location.href = url;
+        }
     </script>
 </body>
 </html>
