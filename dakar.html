@@ -11,7 +11,6 @@
             color: #fff; overflow: hidden; user-select: none; touch-action: none;
         }
         
-        /* Экраны меню */
         .screen { 
             display: none; flex-direction: column; align-items: center; justify-content: center; 
             height: 100vh; text-align: center; padding: 20px; box-sizing: border-box; background: #0d1117;
@@ -22,77 +21,48 @@
         h1 { color: #58a6ff; font-size: 32px; text-transform: uppercase; text-shadow: 0 0 15px rgba(88,166,255,0.5); margin-bottom: 10px; margin-top: 10px; }
         h2 { color: #ff9d00; font-size: 24px; margin-bottom: 30px; }
 
-        /* Стили для постера */
-        .game-poster {
-            width: 100%;
-            max-width: 280px;
-            border-radius: 12px;
-            border: 2px solid #58a6ff;
-            box-shadow: 0 0 25px rgba(88,166,255,0.3);
-            margin-bottom: 20px;
-            object-fit: cover;
-        }
+        .game-poster { width: 100%; max-width: 280px; border-radius: 12px; border: 2px solid #58a6ff; box-shadow: 0 0 25px rgba(88,166,255,0.3); margin-bottom: 30px; object-fit: cover; }
 
-        input[type="text"] {
-            background: #111; border: 2px solid #58a6ff; color: #58a6ff; font-size: 20px;
-            padding: 15px; border-radius: 8px; width: 80%; max-width: 300px; text-align: center;
-            outline: none; font-family: inherit; margin-bottom: 20px; font-weight: bold;
-        }
-        input[type="text"]:focus { box-shadow: 0 0 15px rgba(88,166,255,0.5); }
-
-        button { 
-            background: #ff3e3e; color: #000; border: none; padding: 15px 0; width: 280px;
-            font-family: inherit; font-weight: bold; font-size: 20px; border-radius: 10px; 
-            cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px rgba(255,62,62,0.4); 
-            margin-bottom: 15px; transition: 0.2s;
-        }
+        button { background: #ff3e3e; color: #000; border: none; padding: 15px 0; width: 280px; font-family: inherit; font-weight: bold; font-size: 20px; border-radius: 10px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px rgba(255,62,62,0.4); margin-bottom: 15px; transition: 0.2s; }
         button:active { transform: scale(0.95); opacity: 0.8; }
         .btn-blue { background: #58a6ff; box-shadow: 0 0 15px rgba(88,166,255,0.4); }
         .btn-green { background: #238636; box-shadow: 0 0 15px rgba(35,134,54,0.4); color: #fff;}
+        .btn-dark { background: #333; color: white; box-shadow: none; margin-bottom: 5px; border: 1px solid #555;}
 
-        /* Сетка уровней */
         .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; margin-bottom: 20px;}
         .lvl-btn { padding: 15px 0; font-size: 18px; width: 100%; margin-bottom: 0;}
 
-        /* Игровой интерфейс */
-        #game-ui {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none;
-        }
-        #hud {
-            position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between;
-            font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #000; pointer-events: none;
-        }
-        .time-display { color: #58a6ff; }
-        .player-name-display { color: #ff9d00; }
+        #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        #hud { position: absolute; top: 15px; width: 100%; display: flex; justify-content: center; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 0 #000; pointer-events: none; }
+        .time-display { color: #58a6ff; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 10px; border: 1px solid #58a6ff;}
 
-        /* Зоны управления (Педали) */
-        .control-zone {
-            position: absolute; bottom: 0; width: 50%; height: 100%; pointer-events: auto;
-            display: flex; align-items: flex-end; justify-content: center; padding-bottom: 40px; box-sizing: border-box;
-            opacity: 0.1; transition: 0.2s; font-size: 40px; font-weight: bold; color: white;
-        }
+        .control-zone { position: absolute; bottom: 0; width: 50%; height: 100%; pointer-events: auto; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 40px; box-sizing: border-box; opacity: 0.1; transition: 0.2s; font-size: 40px; font-weight: bold; color: white; }
         #zone-brake { left: 0; background: linear-gradient(to right, rgba(255,0,0,0.5), transparent); }
         #zone-gas { right: 0; background: linear-gradient(to left, rgba(0,255,0,0.5), transparent); }
         .control-zone:active { opacity: 0.4; }
 
         canvas { display: block; width: 100vw; height: 100vh; background: linear-gradient(#1a2a6c, #b21f1f, #fdbb2d); }
+        .version { font-size: 10px; color: #555; position: absolute; top: 10px; right: 10px; z-index: 20;}
+        
+        #result-reward { color: #ff9d00; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,157,0,0.5); }
     </style>
 </head>
 <body>
+    <div class="version">Dakar v3.1 (Economy)</div>
 
     <div id="screen-login" class="screen active-screen">
         <h1>🚚 ДАКАР 28</h1>
         <img src="https://sun9-37.userapi.com/s/v1/ig2/gWl4OeXXhkpU9b88QNgFK9z3Dmd5VjW71fzRta7uValPP4BOiUFR2uX63_hU1IjWeCnQV8m-hLNyL7Ix-PnXX63J.jpg?quality=95&as=32x57,48x86,72x129,108x193,160x287,240x430,360x645,480x860,540x967,640x1147,720x1290,768x1376&from=bu&u=9K3N3ebjVckl_TI4U2gX5HBu62GBMRKaKGhzqQjsUf0&cs=768x0" alt="Постер Дакар 28" class="game-poster">
-        <input type="text" id="player-name" placeholder="ВВЕДИ НИКНЕЙМ" maxlength="12">
-        <button class="btn-blue" onclick="saveName()">ПРОДОЛЖИТЬ</button>
+        <button class="btn-blue" onclick="switchScreen('screen-difficulty')">ПРОДОЛЖИТЬ</button>
+        <button class="btn-dark" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ ХАБА</button>
     </div>
 
     <div id="screen-difficulty" class="screen">
         <h2>ВЫБЕРИ СЛОЖНОСТЬ</h2>
-        <button class="btn-green" onclick="showTracks('easy')">ЛЕГКИЙ</button>
-        <button class="btn-blue" onclick="showTracks('medium')">СРЕДНИЙ</button>
-        <button onclick="showTracks('hard')">СЛОЖНЫЙ</button>
-        <button style="background: #333; color: white; margin-top: 20px;" onclick="switchScreen('screen-login')">НАЗАД</button>
+        <button class="btn-green" onclick="showTracks('easy')">ЛЕГКИЙ (5-10 SC)</button>
+        <button class="btn-blue" onclick="showTracks('medium')">СРЕДНИЙ (20-40 SC)</button>
+        <button onclick="showTracks('hard')">СЛОЖНЫЙ (100-350 SC)</button>
+        <button class="btn-dark" style="margin-top: 20px;" onclick="switchScreen('screen-login')">НАЗАД</button>
     </div>
 
     <div id="screen-tracks" class="screen">
@@ -102,19 +72,20 @@
             <button class="lvl-btn btn-blue" onclick="startGame(2)">2</button>
             <button class="lvl-btn btn-blue" onclick="startGame(3)">3</button>
         </div>
-        <button style="background: #333; color: white; margin-top: 20px;" onclick="switchScreen('screen-difficulty')">НАЗАД</button>
+        <button class="btn-dark" style="margin-top: 20px;" onclick="switchScreen('screen-difficulty')">НАЗАД</button>
     </div>
 
     <div id="screen-result" class="screen">
         <h1 id="result-title">ПОТРАЧЕНО</h1>
-        <p id="result-time" style="font-size: 24px; color: #58a6ff; margin-bottom: 30px;"></p>
-        <button class="btn-blue" onclick="switchScreen('screen-difficulty')">МЕНЮ УРОВНЕЙ</button>
+        <p id="result-time" style="font-size: 20px; color: #58a6ff; margin-bottom: 10px;"></p>
+        <p id="result-reward"></p>
+        <button class="btn-blue" onclick="switchScreen('screen-difficulty')">ИГРАТЬ ЕЩЕ РАЗ</button>
+        <button class="btn-dark" style="margin-top: 10px;" onclick="window.location.href='index.html'">В ГЛАВНОЕ МЕНЮ ХАБА</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
     <div id="game-ui">
         <div id="hud">
-            <span class="player-name-display" id="hud-name">АГЕНТ</span>
             <span class="time-display" id="hud-time">00:00:00</span>
         </div>
         <div id="zone-brake">⏪ ТОРМОЗ</div>
@@ -122,11 +93,6 @@
     </div>
 
     <script>
-        // Инициализация Telegram
-        try { var tg = window.Telegram.WebApp; if (tg) tg.expand(); } catch (e) {}
-
-        // Переменные интерфейса
-        var playerName = "АГЕНТ";
         var selectedDifficulty = 'easy';
         var selectedTrack = 1;
 
@@ -137,13 +103,6 @@
             cancelAnimationFrame(gameLoopId);
         }
 
-        function saveName() {
-            var nameInput = document.getElementById('player-name').value.trim();
-            if (nameInput) playerName = nameInput.toUpperCase();
-            document.getElementById('hud-name').innerText = playerName;
-            switchScreen('screen-difficulty');
-        }
-
         function showTracks(diff) {
             selectedDifficulty = diff;
             var titles = { 'easy': 'ЛЕГКИЙ РЕЖИМ', 'medium': 'СРЕДНИЙ РЕЖИМ', 'hard': 'СЛОЖНЫЙ РЕЖИМ' };
@@ -151,24 +110,21 @@
             switchScreen('screen-tracks');
         }
 
-        // --- ИГРОВОЙ ДВИЖОК ---
         var canvas = document.getElementById("gameCanvas");
         var ctx = canvas.getContext("2d");
         var gameLoopId;
         var keys = { gas: false, brake: false };
         
-        // Управление касанием и мышью
         document.getElementById('zone-gas').addEventListener('mousedown', () => keys.gas = true);
         document.getElementById('zone-gas').addEventListener('mouseup', () => keys.gas = false);
-        document.getElementById('zone-gas').addEventListener('touchstart', (e) => { e.preventDefault(); keys.gas = true; });
-        document.getElementById('zone-gas').addEventListener('touchend', (e) => { e.preventDefault(); keys.gas = false; });
+        document.getElementById('zone-gas').addEventListener('touchstart', (e) => { e.preventDefault(); keys.gas = true; }, {passive: false});
+        document.getElementById('zone-gas').addEventListener('touchend', (e) => { e.preventDefault(); keys.gas = false; }, {passive: false});
 
         document.getElementById('zone-brake').addEventListener('mousedown', () => keys.brake = true);
         document.getElementById('zone-brake').addEventListener('mouseup', () => keys.brake = false);
-        document.getElementById('zone-brake').addEventListener('touchstart', (e) => { e.preventDefault(); keys.brake = true; });
-        document.getElementById('zone-brake').addEventListener('touchend', (e) => { e.preventDefault(); keys.brake = false; });
+        document.getElementById('zone-brake').addEventListener('touchstart', (e) => { e.preventDefault(); keys.brake = true; }, {passive: false});
+        document.getElementById('zone-brake').addEventListener('touchend', (e) => { e.preventDefault(); keys.brake = false; }, {passive: false});
 
-        // Управление клавиатурой (для ПК)
         window.addEventListener('keydown', (e) => {
             if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.gas = true;
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.brake = true;
@@ -178,96 +134,71 @@
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.brake = false;
         });
 
-        // Переменные физики
         var truck, terrain, camera, startTime, gameActive;
 
         function startGame(trackNum) {
             selectedTrack = trackNum;
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
             document.getElementById('game-ui').style.display = 'block';
-            
             resizeCanvas();
             initLevel();
         }
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
 
         function initLevel() {
-            startTime = Date.now();
-            gameActive = true;
-            
-            truck = {
-                x: 200, y: 100, vx: 0, vy: 0, 
-                width: 80, height: 40, angle: 0,
-                onGround: false
-            };
-
+            startTime = Date.now(); gameActive = true;
+            truck = { x: 200, y: 100, vx: 0, vy: 0, width: 80, height: 40, angle: 0, onGround: false };
             camera = { x: 0 };
-            generateTerrain();
-            gameLoop();
+            generateTerrain(); gameLoop();
         }
 
         function generateTerrain() {
             terrain = [];
-            var cursorX = 0;
-            var cursorY = canvas.height / 2;
+            var cursorX = 0; var cursorY = canvas.height / 2;
             
-            // Настройка сложности
-            var length = selectedDifficulty === 'easy' ? 30 : (selectedDifficulty === 'medium' ? 50 : 80);
+            // Длина трассы зависит и от сложности, и от номера трассы
+            var baseLength = selectedDifficulty === 'easy' ? 30 : (selectedDifficulty === 'medium' ? 50 : 80);
+            var length = baseLength + (selectedTrack * 5); // Каждая следующая трасса чуть длиннее
+            
             var gapChance = selectedDifficulty === 'easy' ? 0.05 : (selectedDifficulty === 'medium' ? 0.15 : 0.25);
             var hillHeight = selectedDifficulty === 'easy' ? 50 : (selectedDifficulty === 'medium' ? 100 : 200);
 
-            // Стартовая площадка
             terrain.push({ x: cursorX, y: cursorY, gap: false });
-            cursorX += 500;
-            terrain.push({ x: cursorX, y: cursorY, gap: false });
+            cursorX += 500; terrain.push({ x: cursorX, y: cursorY, gap: false });
 
-            // Генерация горок и пропастей
             for (var i = 0; i < length; i++) {
                 var isGap = Math.random() < gapChance && i > 2 && i < length - 2;
-                
                 if (isGap) {
-                    var gapWidth = 150 + Math.random() * 100;
-                    cursorX += gapWidth;
-                    terrain.push({ x: cursorX, y: cursorY, gap: true }); // Конец пропасти
+                    cursorX += 150 + Math.random() * 100;
+                    terrain.push({ x: cursorX, y: cursorY, gap: true });
                 } else {
-                    var segWidth = 200 + Math.random() * 200;
                     cursorY += (Math.random() - 0.5) * hillHeight;
-                    // Ограничение высоты
                     if (cursorY < 200) cursorY = 200;
                     if (cursorY > canvas.height - 100) cursorY = canvas.height - 100;
-                    
-                    cursorX += segWidth;
+                    cursorX += 200 + Math.random() * 200;
                     terrain.push({ x: cursorX, y: cursorY, gap: false });
                 }
             }
-
-            // Финишная прямая
-            cursorX += 800;
-            terrain.push({ x: cursorX, y: cursorY, gap: false, finish: true });
+            cursorX += 800; terrain.push({ x: cursorX, y: cursorY, gap: false, finish: true });
         }
 
         function getTerrainY(x) {
             for (var i = 0; i < terrain.length - 1; i++) {
-                var p1 = terrain[i];
-                var p2 = terrain[i+1];
+                var p1 = terrain[i], p2 = terrain[i+1];
                 if (x >= p1.x && x <= p2.x) {
-                    if (p2.gap) return Infinity; // Пропасть
+                    if (p2.gap) return Infinity;
                     var t = (x - p1.x) / (p2.x - p1.x);
                     return p1.y + t * (p2.y - p1.y);
                 }
             }
-            return Infinity; // За пределами карты падение
+            return Infinity;
         }
 
         function getTerrainAngle(x) {
             for (var i = 0; i < terrain.length - 1; i++) {
-                var p1 = terrain[i];
-                var p2 = terrain[i+1];
+                var p1 = terrain[i], p2 = terrain[i+1];
                 if (x >= p1.x && x <= p2.x) {
                     if (p2.gap) return 0;
                     return Math.atan2(p2.y - p1.y, p2.x - p1.x);
@@ -281,167 +212,114 @@
             var minutes = Math.floor(totalSeconds / 60);
             var seconds = totalSeconds % 60;
             var millis = Math.floor((ms % 1000) / 10);
-            return (minutes < 10 ? "0" : "") + minutes + ":" + 
-                   (seconds < 10 ? "0" : "") + seconds + ":" + 
-                   (millis < 10 ? "0" : "") + millis;
+            return (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds + ":" + (millis < 10 ? "0" : "") + millis;
         }
 
         function gameLoop() {
             if (!gameActive) return;
-            
-            updatePhysics();
-            drawGame();
-            
-            // Обновление таймера
-            var elapsedTime = Date.now() - startTime;
-            document.getElementById('hud-time').innerText = formatTime(elapsedTime);
-
+            updatePhysics(); drawGame();
+            document.getElementById('hud-time').innerText = formatTime(Date.now() - startTime);
             gameLoopId = requestAnimationFrame(gameLoop);
         }
 
         function updatePhysics() {
-            var gravity = 0.5;
-            var thrust = 0.4;
-            var friction = 0.98;
-            var groundY = getTerrainY(truck.x);
-            var slopeAngle = getTerrainAngle(truck.x);
+            var gravity = 0.5, thrust = 0.4, friction = 0.98;
+            var groundY = getTerrainY(truck.x), slopeAngle = getTerrainAngle(truck.x);
 
-            // Проверка финиша
             for (var i = 0; i < terrain.length; i++) {
-                if (terrain[i].finish && truck.x >= terrain[i].x - 100) {
-                    endGame(true);
-                    return;
-                }
+                if (terrain[i].finish && truck.x >= terrain[i].x - 100) { endGame(true); return; }
             }
 
-            // Управление
             if (keys.gas) truck.vx += Math.cos(slopeAngle) * thrust;
             if (keys.brake) truck.vx -= Math.cos(slopeAngle) * (thrust * 1.5);
 
-            // Гравитация и движение
-            truck.vy += gravity;
-            truck.x += truck.vx;
-            truck.y += truck.vy;
-            truck.vx *= friction; // Трение воздуха/земли
+            truck.vy += gravity; truck.x += truck.vx; truck.y += truck.vy; truck.vx *= friction;
 
-            // Столкновение с землей
             if (truck.y >= groundY) {
-                truck.y = groundY;
-                truck.vy = 0;
-                truck.onGround = true;
-                
-                // Вращение грузовика по склону
-                truck.angle = slopeAngle;
-                
-                // Гравитация тянет вниз по склону
+                truck.y = groundY; truck.vy = 0; truck.onGround = true; truck.angle = slopeAngle;
                 truck.vx += Math.sin(slopeAngle) * 0.2;
             } else {
                 truck.onGround = false;
-                // В воздухе нос немного клюет
                 if (truck.angle < 0.5) truck.angle += 0.02;
             }
 
-            // Упал в пропасть?
-            if (truck.y > canvas.height + 100) {
-                endGame(false);
-                return;
-            }
+            if (truck.y > canvas.height + 100) { endGame(false); return; }
 
-            // Камера следит за грузовиком
-            camera.x = truck.x - canvas.width * 0.3;
-            if (camera.x < 0) camera.x = 0;
+            camera.x = truck.x - canvas.width * 0.3; if (camera.x < 0) camera.x = 0;
         }
 
         function drawGame() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save(); ctx.translate(-camera.x, 0);
 
-            ctx.save();
-            ctx.translate(-camera.x, 0);
-
-            // Рисуем землю
-            ctx.beginPath();
-            ctx.moveTo(terrain[0].x, canvas.height);
+            ctx.beginPath(); ctx.moveTo(terrain[0].x, canvas.height);
             var isDrawingGround = true;
 
             for (var i = 0; i < terrain.length; i++) {
                 var p = terrain[i];
-                
-                if (p.gap) {
-                    // Рисуем обрыв вниз
-                    ctx.lineTo(terrain[i-1].x, canvas.height);
-                    isDrawingGround = false;
-                } else {
-                    if (!isDrawingGround) {
-                        // Поднимаем землю после обрыва
-                        ctx.moveTo(p.x, canvas.height);
-                        isDrawingGround = true;
-                    }
+                if (p.gap) { ctx.lineTo(terrain[i-1].x, canvas.height); isDrawingGround = false; } 
+                else {
+                    if (!isDrawingGround) { ctx.moveTo(p.x, canvas.height); isDrawingGround = true; }
                     ctx.lineTo(p.x, p.y);
-                    
-                    // Флаг финиша
-                    if (p.finish) {
-                        ctx.fillStyle = "white";
-                        ctx.fillRect(p.x - 10, p.y - 150, 5, 150);
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(p.x - 10, p.y - 150, 60, 40);
-                    }
+                    if (p.finish) { ctx.fillStyle = "white"; ctx.fillRect(p.x - 10, p.y - 150, 5, 150); ctx.fillStyle = "red"; ctx.fillRect(p.x - 10, p.y - 150, 60, 40); }
                 }
             }
             if (isDrawingGround) ctx.lineTo(terrain[terrain.length-1].x, canvas.height);
             
-            ctx.fillStyle = "#3e2723"; // Цвет земли
-            ctx.fill();
-            ctx.strokeStyle = "#ff9d00"; // Линия трассы
-            ctx.lineWidth = 4;
-            ctx.stroke();
+            ctx.fillStyle = "#3e2723"; ctx.fill();
+            ctx.strokeStyle = "#ff9d00"; ctx.lineWidth = 4; ctx.stroke();
 
-            // Рисуем КАМАЗ
-            ctx.save();
-            ctx.translate(truck.x, truck.y - 15);
-            ctx.rotate(truck.angle);
-            
-            // Кабина (синяя)
-            ctx.fillStyle = "#1e88e5";
-            ctx.fillRect(10, -35, 30, 30);
-            
-            // Кузов (серый)
-            ctx.fillStyle = "#757575";
-            ctx.fillRect(-40, -40, 50, 35);
-            
-            // Шасси (черное)
-            ctx.fillStyle = "#212121";
-            ctx.fillRect(-40, -5, 80, 10);
-
-            // Колеса
-            ctx.fillStyle = "#000";
-            ctx.beginPath(); ctx.arc(-25, 5, 12, 0, Math.PI*2); ctx.fill(); // Заднее
-            ctx.beginPath(); ctx.arc(25, 5, 12, 0, Math.PI*2); ctx.fill(); // Переднее
-            
-            // Диски
-            ctx.fillStyle = "#ccc";
-            ctx.beginPath(); ctx.arc(-25, 5, 5, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(25, 5, 5, 0, Math.PI*2); ctx.fill();
-
-            ctx.restore();
-            ctx.restore();
+            ctx.save(); ctx.translate(truck.x, truck.y - 15); ctx.rotate(truck.angle);
+            ctx.fillStyle = "#1e88e5"; ctx.fillRect(10, -35, 30, 30);
+            ctx.fillStyle = "#757575"; ctx.fillRect(-40, -40, 50, 35);
+            ctx.fillStyle = "#212121"; ctx.fillRect(-40, -5, 80, 10);
+            ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(-25, 5, 12, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(25, 5, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "#ccc"; ctx.beginPath(); ctx.arc(-25, 5, 5, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(25, 5, 5, 0, Math.PI*2); ctx.fill();
+            ctx.restore(); ctx.restore();
         }
 
+        // --- ТОЧНАЯ ЛОГИКА НАГРАД ---
         function endGame(isVictory) {
             gameActive = false;
-            try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred(isVictory ? 'success' : 'error'); } catch(e) {}
-            
             var timeTaken = document.getElementById('hud-time').innerText;
             var resTitle = document.getElementById('result-title');
             var resTime = document.getElementById('result-time');
+            var resReward = document.getElementById('result-reward');
 
             if (isVictory) {
                 resTitle.innerText = "ФИНИШ!";
                 resTitle.style.color = "#238636";
                 resTime.innerText = "Твое время: " + timeTaken;
+
+                // Математика начисления монет по заданию
+                var rewardAmount = 0;
+                
+                if (selectedDifficulty === 'easy') {
+                    if (selectedTrack === 1) rewardAmount = 5;
+                    else if (selectedTrack === 2) rewardAmount = 7;
+                    else if (selectedTrack === 3) rewardAmount = 10;
+                } 
+                else if (selectedDifficulty === 'medium') {
+                    if (selectedTrack === 1) rewardAmount = 20;
+                    else if (selectedTrack === 2) rewardAmount = 30;
+                    else if (selectedTrack === 3) rewardAmount = 40;
+                } 
+                else if (selectedDifficulty === 'hard') {
+                    if (selectedTrack === 1) rewardAmount = 100;
+                    else if (selectedTrack === 2) rewardAmount = 200;
+                    else if (selectedTrack === 3) rewardAmount = 350;
+                }
+
+                // Сохраняем в общий кошелек Хаба
+                var currentBalance = parseInt(localStorage.getItem('syndicate_coins')) || 0;
+                localStorage.setItem('syndicate_coins', currentBalance + rewardAmount);
+
+                resReward.innerText = "НАГРАДА: +" + rewardAmount + " SC 💎";
             } else {
                 resTitle.innerText = "МАШИНА УНИЧТОЖЕНА";
                 resTitle.style.color = "#ff3e3e";
                 resTime.innerText = "Ты упал в пропасть...";
+                resReward.innerText = "Штраф за эвакуацию: 0 SC";
             }
 
             setTimeout(() => switchScreen('screen-result'), 1000);
