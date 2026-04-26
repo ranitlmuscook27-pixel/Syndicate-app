@@ -10,79 +10,85 @@
             margin: 0; font-family: 'Courier New', monospace; background: #050505; 
             color: #fff; overflow-x: hidden; user-select: none;
         }
-        
-        /* Основной контейнер Хаба */
+
+        /* Экран приветствия (Intro) */
+        #intro-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; z-index: 1000; display: flex; 
+            align-items: center; justify-content: center; text-align: center;
+            padding: 30px; box-sizing: border-box; transition: opacity 1s ease;
+        }
+        #intro-screen h2 {
+            font-size: 24px; color: #ff3e3e; text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255,62,62,0.6);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* Контейнер Хаба */
         #hub-container {
             display: flex; flex-direction: column; align-items: center; 
             padding: 20px; box-sizing: border-box; min-height: 100vh;
             background: radial-gradient(circle at center, #1a1a24 0%, #050505 100%);
         }
 
-        /* Шапка */
-        .header { text-align: center; margin-bottom: 30px; margin-top: 10px; width: 100%; max-width: 400px; }
-        .header h1 { font-size: 22px; color: #fff; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        .header span { color: #ff3e3e; font-size: 26px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 15px rgba(255,62,62,0.8); display: block; margin-top: 5px; }
-        
-        .logo-img { 
-            width: 100%; border-radius: 12px; border: 2px solid #ff3e3e; 
-            box-shadow: 0 0 25px rgba(255,62,62,0.3);
+        /* Виджет баланса */
+        #wallet-container {
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(13, 17, 23, 0.9); border: 1px solid #ff9d00;
+            padding: 10px 15px; border-radius: 12px; display: flex; align-items: center;
+            box-shadow: 0 0 15px rgba(255, 157, 0, 0.2); z-index: 100;
         }
+        #balance-amount { color: #ff9d00; font-size: 18px; font-weight: bold; margin-left: 10px; }
+        #wallet-icon { font-size: 18px; }
 
-        /* Главное меню кнопок */
+        /* Шапка */
+        .header { text-align: center; margin-bottom: 30px; margin-top: 40px; width: 100%; max-width: 400px; }
+        .header span { color: #ff3e3e; font-size: 26px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 15px rgba(255,62,62,0.8); display: block; margin-top: 5px; }
+        .logo-img { width: 100%; border-radius: 12px; border: 2px solid #ff3e3e; box-shadow: 0 0 25px rgba(255,62,62,0.3); }
+
+        /* Меню */
         .menu-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px; }
-        
         .btn-main {
             background: #0d1117; color: #ff3e3e; border: 1px solid #ff3e3e; padding: 18px; 
             font-family: inherit; font-weight: bold; font-size: 18px; border-radius: 10px; 
             cursor: pointer; text-transform: uppercase; transition: 0.3s;
-            box-shadow: inset 0 0 10px rgba(255,0,0,0.1);
         }
-        .btn-main:hover, .btn-main:active { background: #ff3e3e; color: #000; box-shadow: 0 0 20px rgba(255,62,62,0.6); }
+        .btn-main:active { background: #ff3e3e; color: #000; }
 
-        /* Экраны разделов (скрыты по умолчанию) */
-        .section-screen { 
-            display: none; flex-direction: column; align-items: center; 
-            width: 100%; max-width: 400px; margin-top: 20px; animation: fadeIn 0.4s;
-        }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .section-title { color: #58a6ff; font-size: 24px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 2px solid #58a6ff; padding-bottom: 5px; width: 100%; text-align: center; }
+        /* Разделы */
+        .section-screen { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; margin-top: 20px; }
+        .section-title { color: #58a6ff; font-size: 24px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 2px solid #58a6ff; width: 100%; text-align: center; }
 
         /* Карточки Игр */
         .game-card {
             background: #111; border: 1px solid #333; padding: 15px; border-radius: 10px;
-            margin-bottom: 15px; width: 100%; box-sizing: border-box; cursor: pointer; transition: 0.3s;
+            margin-bottom: 15px; width: 100%; box-sizing: border-box; cursor: pointer;
         }
-        .game-card.active-game { border-color: #238636; box-shadow: 0 0 15px rgba(35,134,54,0.3); }
-        .game-card.active-game:active { transform: scale(0.98); background: #238636; }
-        .game-card.locked { opacity: 0.6; cursor: not-allowed; }
-        
-        .game-title { font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #fff; }
-        .game-desc { font-size: 14px; color: #aaa; line-height: 1.4; }
-        .game-status { margin-top: 10px; font-size: 14px; font-weight: bold; }
-        .status-ready { color: #238636; }
-        .status-dev { color: #ff9d00; }
+        .active-game { border-color: #238636; box-shadow: 0 0 15px rgba(35,134,54,0.3); }
+        .game-title { font-size: 20px; font-weight: bold; color: #fff; }
+        .game-desc { font-size: 14px; color: #aaa; margin-top: 5px; }
+        .game-status { margin-top: 10px; font-size: 14px; font-weight: bold; color: #238636; }
 
-        /* Карточки Инфо (Биржа, Роадмап) */
-        .info-box { background: #111; border: 1px solid #444; padding: 20px; border-radius: 10px; text-align: center; color: #ccc; line-height: 1.6; width: 100%; box-sizing: border-box;}
-        .info-box h3 { color: #ff9d00; margin-top: 0; }
-
-        .btn-back { background: #555; color: #fff; border: none; padding: 15px; font-family: inherit; font-weight: bold; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; text-transform: uppercase; }
-        .btn-back:active { background: #777; }
-
-        .version { font-size: 10px; color: #444; position: absolute; top: 10px; right: 10px; }
+        .btn-back { background: #333; color: #fff; border: none; padding: 15px; font-family: inherit; font-weight: bold; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="version">Hub v2.0</div>
+
+    <div id="intro-screen">
+        <h2>Добро пожаловать в наши фантастические миры, в которых вы останетесь</h2>
+    </div>
+
+    <div id="wallet-container">
+        <span id="wallet-icon">💎</span>
+        <span id="balance-amount">0 SC</span>
+    </div>
 
     <div id="hub-container">
-        
-        <div id="main-menu">
+        <div id="main-menu" style="width: 100%; max-width: 400px;">
             <div class="header">
-                <h1>Добро пожаловать в мир<br><span>Syndicate Games Studio</span></h1>
-                <img src="https://sun9-15.userapi.com/s/v1/ig2/eHggZ9epV8ccWnSypRmknQeDpu2aeWNCtCaZ7P7tTkqCZkBUUeMU29PNnTRwhKhjGNtTGZUPuzjQsTTRMFzQBT9t.jpg?quality=95&as=32x17,48x26,72x39,108x59,160x87,240x131,360x196,480x262,540x295,640x349,720x393,1080x589,1280x698,1408x768&from=bu&u=-FktBFhyP8WevcaD9T1dDnlTXlGIW6bxMKPvGPC7OPw&cs=1408x0" alt="Логотип студии" class="logo-img">
+                <span>Syndicate Games Studio</span>
+                <img src="https://sun9-15.userapi.com/s/v1/ig2/eHggZ9epV8ccWnSypRmknQeDpu2aeWNCtCaZ7P7tTkqCZkBUUeMU29PNnTRwhKhjGNtTGZUPuzjQsTTRMFzQBT9t.jpg?quality=95&as=32x17,48x26,72x39,108x59,160x87,240x131,360x196,480x262,540x295,640x349,720x393,1080x589,1280x698,1408x768&from=bu&u=-FktBFhyP8WevcaD9T1dDnlTXlGIW6bxMKPvGPC7OPw&cs=1408x0" alt="Logo" class="logo-img">
             </div>
 
             <div class="menu-grid">
@@ -95,102 +101,67 @@
 
         <div id="games-section" class="section-screen">
             <div class="section-title">Каталог игр</div>
-            
-            <div class="game-card active-game" onclick="launchGame('red_protocol.html')">
+            <div class="game-card active-game" onclick="window.location.href='red_protocol.html'">
                 <div class="game-title">Красный протокол 2</div>
-                <div class="game-desc">Взломай сейф, разгадай шифр и получи доступ к секретным данным Синдиката.</div>
-                <div class="game-status status-ready">▶ ИГРАТЬ СЕЙЧАС</div>
+                <div class="game-desc">Взломай сейф и получи данные.</div>
+                <div class="game-status">▶ ИГРАТЬ</div>
             </div>
-
-            <div class="game-card active-game" onclick="launchGame('dakar.html')">
+            <div class="game-card active-game" onclick="window.location.href='dakar.html'">
                 <div class="game-title">🚚 Дакар 28</div>
-                <div class="game-desc">Хардкорные гонки на Камазах. Жми на газ, контролируй тормоз, покоряй дюны.</div>
-                <div class="game-status status-ready">▶ ИГРАТЬ СЕЙЧАС</div>
+                <div class="game-desc">Гонки на Камазах. Зарабатывай SC!</div>
+                <div class="game-status">▶ ИГРАТЬ</div>
             </div>
-
-            <div class="game-card locked">
-                <div class="game-title">🏀 Syndicate Hoops 28</div>
-                <div class="game-desc">Баскетбольный симулятор. Выбери команду и забрось победный мяч в кольцо.</div>
-                <div class="game-status status-dev">⚙ В РАЗРАБОТКЕ</div>
-            </div>
-
-            <div class="game-card locked">
-                <div class="game-title">⚽️ Мундиаль 26</div>
-                <div class="game-desc">Футбольная битва. Выбери сборную и пробей идеальный пенальти в девятку.</div>
-                <div class="game-status status-dev">⚙ В РАЗРАБОТКЕ</div>
-            </div>
-
-            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+            <button class="btn-back" onclick="goBack()">НАЗАД</button>
         </div>
 
         <div id="exchange-section" class="section-screen">
-            <div class="section-title">Биржа Синдиката</div>
-            <div class="info-box">
-                <h3>Внутренняя Экосистема</h3>
-                <p>Здесь Агенты смогут зарабатывать баллы и криптовалюту за прохождение мини-игр.</p>
-                <p>Активы можно будет обменивать на скидки при предзаказе, уникальные скины или влияние на сюжет будущих проектов.</p>
-                <br>
-                <span class="status-dev">ОТКРЫТИЕ ТОРГОВ СКОРО...</span>
+            <div class="section-title">Биржа</div>
+            <div style="background: #111; padding: 20px; border-radius: 10px; text-align: center;">
+                <h3 style="color: #ff9d00;">Ваши Активы: <span id="exchange-balance">0</span> SC</h3>
+                <p style="color: #aaa;">Здесь вы сможете покупать акции Syndicate Games и влиять на развитие проектов.</p>
+                <p style="color: #555;">Торги откроются в следующем обновлении.</p>
             </div>
-            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
+            <button class="btn-back" onclick="goBack()">НАЗАД</button>
         </div>
 
-        <div id="roadmap-section" class="section-screen">
-            <div class="section-title">План Студии</div>
-            <div class="info-box" style="text-align: left;">
-                <p>✅ <b>Этап 1:</b> Запуск Хаба Syndicate Games.</p>
-                <p>✅ <b>Этап 2:</b> Релиз мини-игры "Красный протокол 2".</p>
-                <p>✅ <b>Этап 3:</b> Запуск "Дакар 28".</p>
-                <p>⏳ <b>Этап 4:</b> Разработка спорт-симуляторов (Hoops 28, Мундиаль 26).</p>
-                <p>⏳ <b>Этап 5:</b> Открытие Биржи Синдиката.</p>
-            </div>
-            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
-        </div>
-
-        <div id="preorder-section" class="section-screen">
-            <div class="section-title">Предзаказ</div>
-            <div class="info-box">
-                <h3>Поддержи разработку</h3>
-                <p>Оформление предзаказов будет доступно после официального трейлера Красного Протокола 2.</p>
-                <p>Владельцы предзаказа получат статус "Элитный Агент" в нашем Хабе.</p>
-            </div>
-            <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
-        </div>
-
+        <div id="roadmap-section" class="section-screen"><div class="section-title">Роадмап</div><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
+        <div id="preorder-section" class="section-screen"><div class="section-title">Предзаказ</div><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
     </div>
 
     <script>
-        // Инициализация Telegram
-        try { 
-            var tg = window.Telegram.WebApp;
-            if (tg) tg.expand(); 
-        } catch (e) {}
-
-        // Функция открытия разделов
-        function openSection(sectionId) {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('games-section').style.display = 'none';
-            document.getElementById('exchange-section').style.display = 'none';
-            document.getElementById('roadmap-section').style.display = 'none';
-            document.getElementById('preorder-section').style.display = 'none';
-            
-            document.getElementById(sectionId).style.display = 'flex';
+        // ЛОГИКА БАЛАНСА
+        function updateBalanceDisplay() {
+            // Читаем из памяти. Если пусто - ставим 0.
+            let balance = localStorage.getItem('syndicate_coins') || 0;
+            document.getElementById('balance-amount').innerText = balance + " SC";
+            if(document.getElementById('exchange-balance')) {
+                document.getElementById('exchange-balance').innerText = balance;
+            }
         }
 
-        // Возврат в главное меню
+        // ПРИВЕТСТВИЕ
+        window.onload = function() {
+            updateBalanceDisplay();
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('intro-screen').style.display = 'none';
+                }, 1000);
+            }, 3000);
+        };
+
+        function openSection(id) {
+            document.getElementById('main-menu').style.display = 'none';
+            document.querySelectorAll('.section-screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+
         function goBack() {
-            document.getElementById('games-section').style.display = 'none';
-            document.getElementById('exchange-section').style.display = 'none';
-            document.getElementById('roadmap-section').style.display = 'none';
-            document.getElementById('preorder-section').style.display = 'none';
-            
+            document.querySelectorAll('.section-screen').forEach(s => s.style.display = 'none');
             document.getElementById('main-menu').style.display = 'block';
         }
 
-        // Запуск мини-игры (переход на другой файл)
-        function launchGame(url) {
-            window.location.href = url;
-        }
+        try { window.Telegram.WebApp.ready(); } catch(e) {}
     </script>
 </body>
 </html>
