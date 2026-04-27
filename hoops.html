@@ -38,9 +38,9 @@
         #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
         #scoreboard {
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); border: 2px solid #ff9d00; border-radius: 10px;
+            background: rgba(0,0,0,0.85); border: 2px solid #ff9d00; border-radius: 10px;
             padding: 10px 20px; display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 0 15px rgba(255,157,0,0.5); width: 80%; max-width: 350px;
+            box-shadow: 0 0 20px rgba(255,157,0,0.6); width: 80%; max-width: 350px;
         }
         .score-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px; align-items: center; }
         .team-name { font-size: 16px; font-weight: bold; color: #fff; width: 40%; text-align: left; }
@@ -50,15 +50,15 @@
         .dot.hit { background: #238636; border-color: #238636; box-shadow: 0 0 8px #238636; }
         .dot.miss { background: #da3633; border-color: #da3633; box-shadow: 0 0 8px #da3633; }
 
-        #turn-indicator { position: absolute; top: 110px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; color: #fff; text-shadow: 0 0 10px #000; }
+        #turn-indicator { position: absolute; top: 115px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; color: #fff; text-shadow: 0 0 10px #000; }
 
-        canvas { display: block; width: 100vw; height: 100vh; background: linear-gradient(#1a2a6c, #2a0845); }
+        canvas { display: block; width: 100vw; height: 100vh; background: #0a0a14; }
         
         .version { font-size: 10px; color: #555; position: absolute; top: 10px; right: 10px; z-index: 20;}
     </style>
 </head>
 <body>
-    <div class="version">Hoops v1.1 (New Physics)</div>
+    <div class="version">Hoops v1.2 (Arena Update)</div>
 
     <div id="screen-menu" class="screen active-screen">
         <h1>🏀 SYNDICATE HOOPS</h1>
@@ -167,8 +167,8 @@
 
         var ball = { x: 0, y: 0, radius: 20, vx: 0, vy: 0, isDragging: false, isMoving: false, startX: 0, startY: 0 };
         var hoop = { x: 0, y: 0, width: 80, height: 10 };
+        var fans = []; // Массив болельщиков
         
-        // НОВАЯ ФИЗИКА (Легче бросать, сильнее летит)
         var gravity = 0.55; 
         var dragMultiplier = 0.28; 
 
@@ -219,14 +219,26 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             hoop.x = canvas.width / 2;
-            hoop.y = canvas.height * 0.35; // Кольцо сверху
+            hoop.y = canvas.height * 0.35; 
+            
+            // Генерация толпы на трибунах (в верхней части экрана)
+            fans = [];
+            var floorY = canvas.height * 0.45;
+            for (var i = 0; i < 150; i++) {
+                fans.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (floorY - 50),
+                    color: Math.random() > 0.5 ? "#ff3e3e" : (Math.random() > 0.5 ? "#58a6ff" : "#555"),
+                    size: 2 + Math.random() * 2,
+                    flashTimer: Math.floor(Math.random() * 200)
+                });
+            }
         }
         window.addEventListener('resize', resizeCanvas);
 
         function resetBall() {
             ball.x = canvas.width / 2;
-            // МЯЧ ТЕПЕРЬ СТАРТУЕТ ВЫШЕ, ЧТОБЫ БЫЛО МЕСТО ДЛЯ НАТЯЖЕНИЯ ВНИЗ
-            ball.y = canvas.height * 0.65; 
+            ball.y = canvas.height * 0.70; // Удобная позиция для оттягивания
             ball.vx = 0;
             ball.vy = 0;
             ball.isMoving = false;
@@ -241,7 +253,6 @@
             var x = e.touches ? e.touches[0].clientX : e.clientX;
             var y = e.touches ? e.touches[0].clientY : e.clientY;
             
-            // Расширена зона захвата мяча
             var dist = Math.hypot(x - ball.x, y - ball.y);
             if (dist < ball.radius * 4) {
                 ball.isDragging = true;
@@ -255,7 +266,6 @@
             pointer.x = e.touches ? e.touches[0].clientX : e.clientX;
             pointer.y = e.touches ? e.touches[0].clientY : e.clientY;
             
-            // Ограничение натяжения (нельзя тянуть выше стартовой точки)
             var dy = pointer.y - ball.startY;
             if (dy < 0) pointer.y = ball.startY; 
         }
@@ -267,7 +277,6 @@
             var dx = ball.startX - pointer.x;
             var dy = ball.startY - pointer.y;
 
-            // Если натянули достаточно сильно (минимум 20 пикселей)
             if (Math.abs(dy) > 20) {
                 ball.vx = dx * dragMultiplier;
                 ball.vy = dy * dragMultiplier;
@@ -300,17 +309,17 @@
                 ball.x += ball.vx;
                 ball.y += ball.vy;
 
-                // Проверка попадания в кольцо (чуть более мягкая)
+                // Проверка попадания в кольцо
                 if (ball.vy > 0 && Math.abs(ball.x - hoop.x) < hoop.width / 2 + 5 && Math.abs(ball.y - hoop.y) < 20) {
                     if (!goalScored && checkCollisionCooldown === 0) {
                         goalScored = true;
-                        checkCollisionCooldown = 30; // Защита от двойного засчитывания
+                        checkCollisionCooldown = 30;
                     }
                 }
 
                 if (checkCollisionCooldown > 0) checkCollisionCooldown--;
 
-                // Вылет мяча за экран (вниз или в бок)
+                // Вылет мяча за экран
                 if (ball.y > canvas.height + 100 || ball.x < -100 || ball.x > canvas.width + 100) {
                     handleThrowResult(goalScored);
                 }
@@ -318,18 +327,75 @@
         }
 
         function drawFrame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Очистка и фон трибун
+            ctx.fillStyle = "#0a0a14";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Арена (паркет и фон)
-            ctx.fillStyle = "#8d4004"; 
-            ctx.beginPath(); ctx.ellipse(canvas.width/2, canvas.height, canvas.width, 250, 0, 0, Math.PI*2); ctx.fill();
+            // Отрисовка болельщиков (вспышки камер)
+            for(var i = 0; i < fans.length; i++) {
+                var f = fans[i];
+                ctx.fillStyle = f.color;
+                
+                f.flashTimer--;
+                if(f.flashTimer <= 0) {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = "#ffffff";
+                    f.flashTimer = Math.floor(50 + Math.random() * 150);
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0; // Сброс теней
+
+            var floorY = canvas.height * 0.45;
+
+            // Деревянный паркет
+            ctx.fillStyle = "#d48c46"; 
+            ctx.beginPath();
+            ctx.moveTo(0, floorY);
+            ctx.lineTo(canvas.width, floorY);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // Штрафная зона (Краска)
+            ctx.fillStyle = "#b03a2e"; 
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 80, floorY);
+            ctx.lineTo(canvas.width/2 + 80, floorY);
+            ctx.lineTo(canvas.width/2 + 160, canvas.height);
+            ctx.lineTo(canvas.width/2 - 160, canvas.height);
+            ctx.fill();
+
+            // Белые линии разметки
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
+            ctx.stroke(); // Обводка штрафной
+
+            // Полукруг штрафного броска
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, floorY, 80, 0, Math.PI);
+            ctx.stroke();
+
+            // Трехочковая линия
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, floorY, canvas.width * 0.9, canvas.height * 0.5, 0, 0, Math.PI);
+            ctx.stroke();
+
+            // Стойка кольца (уходит в паркет)
+            ctx.fillStyle = "#222";
+            ctx.fillRect(hoop.x - 8, hoop.y - 40, 16, floorY - (hoop.y - 40));
 
             // Щит
-            ctx.fillStyle = "rgba(255,255,255,0.15)";
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
             ctx.fillRect(hoop.x - 70, hoop.y - 80, 140, 100); 
-            ctx.strokeStyle = "#fff"; ctx.lineWidth = 4;
+            ctx.strokeStyle = "#ff3e3e"; ctx.lineWidth = 4;
             ctx.strokeRect(hoop.x - 70, hoop.y - 80, 140, 100);
-            ctx.strokeStyle = "#ff3e3e"; // Квадрат на щите
             ctx.strokeRect(hoop.x - 25, hoop.y - 40, 50, 40);
 
             // Кольцо (задняя дуга)
@@ -337,13 +403,13 @@
             ctx.beginPath(); ctx.ellipse(hoop.x, hoop.y, hoop.width/2, 10, 0, Math.PI, Math.PI*2); ctx.stroke();
 
             // Сетка
-            ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(hoop.x - 35, hoop.y); ctx.lineTo(hoop.x - 20, hoop.y + 40); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(hoop.x + 35, hoop.y); ctx.lineTo(hoop.x + 20, hoop.y + 40); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(hoop.x - 15, hoop.y); ctx.lineTo(hoop.x, hoop.y + 40); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(hoop.x + 15, hoop.y); ctx.lineTo(hoop.x, hoop.y + 40); ctx.stroke();
 
-            // Отрисовка траектории (рогатка) - УДЛИНЕНА
+            // Отрисовка траектории
             if (ball.isDragging) {
                 var dx = ball.startX - pointer.x;
                 var dy = ball.startY - pointer.y;
@@ -353,11 +419,11 @@
                 var simY = ball.startY;
 
                 ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-                for (var i = 0; i < 60; i++) { // Удлиненная траектория
+                for (var i = 0; i < 60; i++) {
                     simVy += gravity;
                     simX += simVx;
                     simY += simVy;
-                    if (i % 4 === 0) { // Каждая 4 точка для красоты
+                    if (i % 4 === 0) { 
                         ctx.beginPath(); ctx.arc(simX, simY, 4, 0, Math.PI*2); ctx.fill();
                     }
                 }
@@ -368,7 +434,7 @@
                 drawBall(ball.x, ball.y);
             }
 
-            // Кольцо (передняя дуга - рисуется поверх мяча)
+            // Кольцо (передняя дуга - поверх мяча)
             ctx.strokeStyle = "#ff9d00"; ctx.lineWidth = 6;
             ctx.beginPath(); ctx.ellipse(hoop.x, hoop.y, hoop.width/2, 10, 0, 0, Math.PI); ctx.stroke();
         }
@@ -397,12 +463,10 @@
             matchData.isPlayerTurn = false;
             updateScoreboard();
 
-            // Имитация хода ИИ
             setTimeout(processAITurn, 1200);
         }
 
         function processAITurn() {
-            // ИИ забивает с шансом 45-50%
             var aiScored = Math.random() > 0.55; 
             
             if (aiScored) {
@@ -440,7 +504,7 @@
             if (matchData.playerScore > matchData.aiScore) {
                 resTitle.innerText = "ПОБЕДА!";
                 resTitle.style.color = "#238636";
-                coinsEarned = matchData.throws * 50; // Награда зависит от длины матча
+                coinsEarned = matchData.throws * 50; 
             } else if (matchData.playerScore === matchData.aiScore) {
                 resTitle.innerText = "НИЧЬЯ";
                 resTitle.style.color = "#aaa";
@@ -451,7 +515,6 @@
                 coinsEarned = 10; 
             }
 
-            // Начисляем на глобальный кошелек
             var currentBalance = parseInt(localStorage.getItem('syndicate_coins')) || 0;
             localStorage.setItem('syndicate_coins', currentBalance + coinsEarned);
 
