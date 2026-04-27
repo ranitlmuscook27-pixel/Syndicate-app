@@ -98,7 +98,7 @@
         }
         .game-item.ready { border-left: 4px solid #238636; }
         .game-item.ready:active { background: #161b22; }
-        .game-item.locked { opacity: 0.6; border-left: 4px solid #333; }
+        .game-item.locked { opacity: 0.6; border-left: 4px solid #333; cursor: not-allowed; }
         
         .game-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;}
         .game-info { font-size: 13px; color: #8b949e; line-height: 1.4; }
@@ -160,9 +160,9 @@
                 <div class="game-info">Гонки на Камазах через пустыню. Две педали — один победитель.</div>
             </div>
 
-            <div class="game-item locked">
-                <div class="game-name">🏀 Syndicate Hoops 28 <span class="badge badge-dev">Dev</span></div>
-                <div class="game-info">Баскетбольный турнир. Выбери команду и забрось трехочковый.</div>
+            <div class="game-item ready" onclick="window.location.href='hoops.html'">
+                <div class="game-name">🏀 Syndicate Hoops 28 <span class="badge badge-ready">Ready</span></div>
+                <div class="game-info">Баскетбольный турнир. Выбери команду и забрось мяч в кольцо.</div>
             </div>
 
             <div class="game-item locked">
