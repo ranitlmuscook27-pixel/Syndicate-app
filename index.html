@@ -52,7 +52,7 @@
             display: flex; align-items: center; transition: 0.2s;
         }
         
-        /* Делаем плашку профиля кликабельной */
+        /* Кликабельный профиль */
         #profile-badge { cursor: pointer; }
         #profile-badge:active { background: rgba(88, 166, 255, 0.2); transform: scale(0.95); }
         
@@ -101,7 +101,7 @@
         .btn-back { background: transparent; color: #8b949e; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-family: inherit; }
         .btn-back:active { background: #333; color: #fff;}
 
-        /* --- ИНВЕНТАРЬ (МОДАЛЬНОЕ ОКНО) --- */
+        /* --- ПРОФИЛЬ / ИНВЕНТАРЬ (МОДАЛЬНОЕ ОКНО) --- */
         #inventory-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 200; display: none; 
@@ -111,13 +111,19 @@
             background: #111118; border: 2px solid #58a6ff; border-radius: 15px; 
             padding: 20px; width: 90%; max-width: 350px; position: relative; 
             box-shadow: 0 0 25px rgba(88,166,255,0.2); animation: fadeIn 0.3s ease;
+            max-height: 85vh; overflow-y: auto; /* Добавлен скролл, если история будет большой */
         }
+        /* Скроллбар для модалки */
+        .inventory-box::-webkit-scrollbar { width: 4px; }
+        .inventory-box::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
+        .inventory-box::-webkit-scrollbar-thumb { background: #58a6ff; border-radius: 4px; }
+
         .close-inv-btn {
             position: absolute; top: 12px; right: 15px; background: transparent; border: none; 
             color: #8b949e; font-size: 24px; cursor: pointer; padding: 0;
         }
         .close-inv-btn:active { color: #ff3e3e; }
-        .inv-title { color: #58a6ff; font-size: 22px; text-transform: uppercase; margin-top: 0; margin-bottom: 20px; text-align: center;}
+        .inv-title { color: #58a6ff; font-size: 20px; text-transform: uppercase; margin-top: 0; margin-bottom: 20px; text-align: center; font-weight: bold;}
         
         .inv-category { margin-bottom: 15px; }
         .inv-cat-name { color: #ff9d00; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;}
@@ -129,13 +135,20 @@
         }
         .inv-cell.filled { border-color: #58a6ff; background: rgba(88,166,255,0.05); box-shadow: 0 0 10px rgba(88,166,255,0.1) inset;}
         
-        /* Всплывающая подсказка с названием предмета */
         .cell-tooltip {
             display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
             background: #fff; color: #000; font-size: 10px; font-weight: bold; padding: 4px 8px; 
             border-radius: 4px; white-space: nowrap; z-index: 10; pointer-events: none;
         }
         .inv-cell:active .cell-tooltip, .inv-cell:hover .cell-tooltip { display: block; }
+
+        /* ИСТОРИЯ ПРЕДЗАКАЗОВ */
+        .history-divider { height: 1px; background: #333; margin: 25px 0 15px 0; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+        .history-item { background: #0a0a0f; border: 1px solid #30363d; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .history-item-title { color: #fff; font-size: 13px; font-weight: bold; }
+        .history-item-date { color: #8b949e; font-size: 11px; }
+        .history-empty { color: #555; font-size: 12px; text-align: center; padding: 15px; font-style: italic; background: #0a0a0f; border-radius: 6px; border: 1px dashed #333;}
     </style>
 </head>
 <body>
@@ -171,8 +184,6 @@
                 <button class="btn-hub" onclick="window.location.href='exchange.html'">Биржа Синдиката <span>➜</span></button>
                 <button class="btn-hub" onclick="window.location.href='roadmap.html'">Дорожная карта <span>➜</span></button>
                 <button class="btn-hub" onclick="window.location.href='preorder.html'">Оформить предзаказ <span>➜</span></button>
-                
-                <button class="btn-hub" onclick="window.location.href='history.html'">История покупок <span>➜</span></button>
             </div>
         </div>
 
@@ -206,7 +217,7 @@
     <div id="inventory-overlay">
         <div class="inventory-box">
             <button class="close-inv-btn" onclick="toggleInventory()">✖</button>
-            <h3 class="inv-title">Инвентарь</h3>
+            <h3 class="inv-title">Профиль Агента</h3>
             
             <div class="inv-category">
                 <div class="inv-cat-name">Статусы</div>
@@ -222,6 +233,15 @@
                 <div class="inv-cat-name">Драгоценности</div>
                 <div class="inv-grid" id="grid-jewels"></div>
             </div>
+
+            <div class="history-divider"></div>
+
+            <div class="inv-category">
+                <div class="inv-cat-name" style="color: #58a6ff;">История предзаказов</div>
+                <div class="history-list" id="list-history">
+                    </div>
+            </div>
+
         </div>
     </div>
 
@@ -278,17 +298,19 @@
             syncWallet();
         }
 
-        /* --- ЛОГИКА ИНВЕНТАРЯ --- */
+        /* --- ЛОГИКА ПРОФИЛЯ (ИНВЕНТАРЬ И ИСТОРИЯ) --- */
         function toggleInventory() {
             const inv = document.getElementById('inventory-overlay');
             if (inv.style.display === 'flex') {
                 inv.style.display = 'none';
             } else {
                 renderInventory();
+                renderHistory();
                 inv.style.display = 'flex';
             }
         }
 
+        // Отрисовка Инвентаря
         function renderInventory() {
             let savedInv = JSON.parse(localStorage.getItem('syndicate_inventory')) || [];
             
@@ -334,6 +356,30 @@
             return null;
         }
 
+        // Отрисовка Истории Покупок
+        function renderHistory() {
+            let historyList = JSON.parse(localStorage.getItem('syndicate_preorders')) || [];
+            const container = document.getElementById('list-history');
+            container.innerHTML = '';
+
+            if (historyList.length === 0) {
+                container.innerHTML = '<div class="history-empty">Вы еще не оформляли предзаказы.</div>';
+                return;
+            }
+
+            historyList.forEach(item => {
+                let div = document.createElement('div');
+                div.className = 'history-item';
+                // item должен иметь структуру { name: "Название", date: "Дата" }
+                div.innerHTML = `
+                    <span class="history-item-title">📦 ${item.name}</span> 
+                    <span class="history-item-date">${item.date}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Закрытие профиля при клике на темный фон
         document.getElementById('inventory-overlay').addEventListener('click', function(e) {
             if(e.target === this) toggleInventory();
         });
