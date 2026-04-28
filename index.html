@@ -49,8 +49,13 @@
         }
         .panel-badge {
             background: rgba(20, 20, 25, 0.9); padding: 8px 15px; border-radius: 20px; border: 1px solid #333;
-            display: flex; align-items: center;
+            display: flex; align-items: center; transition: 0.2s;
         }
+        
+        /* Делаем плашку профиля кликабельной */
+        #profile-badge { cursor: pointer; }
+        #profile-badge:active { background: rgba(88, 166, 255, 0.2); transform: scale(0.95); }
+        
         #player-name-display { color: #58a6ff; font-size: 14px; font-weight: bold; margin-left: 8px; text-transform: uppercase; }
         #wallet-amount { color: #ff9d00; font-size: 16px; font-weight: bold; margin-left: 8px; }
 
@@ -75,7 +80,6 @@
             display: flex; align-items: center; justify-content: space-between;
         }
         .btn-hub:active { border-color: #ff3e3e; color: #ff3e3e; transform: scale(0.98); }
-        .btn-inventory { border-color: #58a6ff; } /* Особый цвет для кнопки инвентаря */
 
         /* СЕКЦИИ */
         .section { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; animation: fadeIn 0.4s ease; }
@@ -141,8 +145,12 @@
     </div>
 
     <div id="top-panel">
-        <div class="panel-badge" style="border-color: #58a6ff;">👤 <span id="player-name-display">АГЕНТ</span></div>
-        <div class="panel-badge" style="border-color: #ff9d00;">💎 <span id="wallet-amount">0 SC</span></div>
+        <div class="panel-badge" id="profile-badge" style="border-color: #58a6ff;" onclick="toggleInventory()">
+            👤 <span id="player-name-display">АГЕНТ</span>
+        </div>
+        <div class="panel-badge" style="border-color: #ff9d00;">
+            💎 <span id="wallet-amount">0 SC</span>
+        </div>
     </div>
 
     <div id="auth-screen">
@@ -159,13 +167,12 @@
             </div>
             
             <div class="menu-list">
-                <button class="btn-hub btn-inventory" onclick="toggleInventory()">Инвентарь Агента <span>🎒</span></button>
-                
                 <button class="btn-hub" onclick="openSection('sec-games')">Наши мини-игры <span>➜</span></button>
-                
                 <button class="btn-hub" onclick="window.location.href='exchange.html'">Биржа Синдиката <span>➜</span></button>
                 <button class="btn-hub" onclick="window.location.href='roadmap.html'">Дорожная карта <span>➜</span></button>
                 <button class="btn-hub" onclick="window.location.href='preorder.html'">Оформить предзаказ <span>➜</span></button>
+                
+                <button class="btn-hub" onclick="window.location.href='history.html'">История покупок <span>➜</span></button>
             </div>
         </div>
 
@@ -203,22 +210,18 @@
             
             <div class="inv-category">
                 <div class="inv-cat-name">Статусы</div>
-                <div class="inv-grid" id="grid-status">
-                    </div>
+                <div class="inv-grid" id="grid-status"></div>
             </div>
 
             <div class="inv-category">
                 <div class="inv-cat-name">Акции компаний</div>
-                <div class="inv-grid" id="grid-shares">
-                    </div>
+                <div class="inv-grid" id="grid-shares"></div>
             </div>
 
             <div class="inv-category">
                 <div class="inv-cat-name">Драгоценности</div>
-                <div class="inv-grid" id="grid-jewels">
-                    </div>
+                <div class="inv-grid" id="grid-jewels"></div>
             </div>
-
         </div>
     </div>
 
@@ -287,15 +290,12 @@
         }
 
         function renderInventory() {
-            // Берем инвентарь с биржи. Если пусто, создаем пустой массив
             let savedInv = JSON.parse(localStorage.getItem('syndicate_inventory')) || [];
             
-            // Фильтруем предметы по категориям (по ключевым словам из биржи)
             let statuses = savedInv.filter(i => i.includes('Статус'));
             let shares = savedInv.filter(i => i.includes('Акция'));
             let jewels = savedInv.filter(i => i.includes('Слиток') || i.includes('Золото'));
 
-            // Заполняем сетки (5 ячеек максимум визуально)
             fillGrid('grid-status', statuses, '🏆');
             fillGrid('grid-shares', shares, '📈');
             fillGrid('grid-jewels', jewels, '💎');
@@ -305,16 +305,13 @@
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
             
-            // Ровно 5 ячеек в каждой категории
             for(let i = 0; i < 5; i++) {
                 let cell = document.createElement('div');
                 cell.className = 'inv-cell';
                 
                 if (items[i]) {
-                    // Если предмет есть
                     cell.classList.add('filled');
                     let emoji = getEmojiForName(items[i]) || defaultEmoji;
-                    // Добавляем иконку и всплывающую подсказку
                     cell.innerHTML = `<span>${emoji}</span><div class="cell-tooltip">${items[i]}</div>`;
                 }
                 
@@ -322,7 +319,6 @@
             }
         }
 
-        // Подбираем красивую иконку под то, что выпало на бирже
         function getEmojiForName(name) {
             if(name.includes('Серебро')) return '🥈';
             if(name.includes('Золото')) return '🥇';
@@ -338,7 +334,6 @@
             return null;
         }
 
-        // Закрытие инвентаря при клике на темный фон
         document.getElementById('inventory-overlay').addEventListener('click', function(e) {
             if(e.target === this) toggleInventory();
         });
