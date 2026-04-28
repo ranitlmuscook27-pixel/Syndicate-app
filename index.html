@@ -55,10 +55,8 @@
             background: rgba(20, 20, 25, 0.9); padding: 8px 15px; border-radius: 20px; 
             display: flex; align-items: center; pointer-events: auto;
         }
-        /* Профиль */
         #profile-badge { border: 1px solid #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.3); }
         #player-name-display { color: #58a6ff; font-size: 14px; font-weight: bold; margin-left: 8px; text-transform: uppercase; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-        /* Кошелек */
         #wallet-badge { border: 1px solid #ff9d00; box-shadow: 0 0 15px rgba(255, 157, 0, 0.3); }
         #wallet-amount { color: #ff9d00; font-size: 16px; font-weight: bold; margin-left: 8px; }
 
@@ -98,13 +96,11 @@
         }
         .game-item.ready { border-left: 4px solid #238636; }
         .game-item.ready:active { background: #161b22; }
-        .game-item.locked { opacity: 0.6; border-left: 4px solid #333; cursor: not-allowed; }
         
         .game-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;}
         .game-info { font-size: 13px; color: #8b949e; line-height: 1.4; }
         .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-left: auto;}
         .badge-ready { background: #238636; color: #fff; }
-        .badge-dev { background: #6e7681; color: #fff; }
 
         .btn-back { background: transparent; color: #8b949e; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-family: inherit; }
     </style>
@@ -165,9 +161,9 @@
                 <div class="game-info">Баскетбольный турнир. Выбери команду и забрось мяч в кольцо.</div>
             </div>
 
-            <div class="game-item locked">
-                <div class="game-name">⚽️ Мундиаль 26 <span class="badge badge-dev">Dev</span></div>
-                <div class="game-info">Серия пенальти. Приведи свою сборную к кубку мира.</div>
+            <div class="game-item ready" onclick="window.location.href='mundial.html'">
+                <div class="game-name">⚽️ Мундиаль 26 <span class="badge badge-ready">Ready</span></div>
+                <div class="game-info">Серия пенальти. Турниры и быстрые матчи. Приведи команду к кубку.</div>
             </div>
 
             <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
@@ -178,7 +174,7 @@
             <div style="background: #111; padding: 20px; border-radius: 12px; text-align: center; width: 100%; border: 1px solid #30363d;">
                 <p style="color: #ff9d00; font-size: 20px; margin: 0;">Ваш баланс: <span id="exchange-balance">0</span> SC</p>
                 <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-                <p style="color: #8b949e; font-size: 14px;">Система активов находится в стадии настройки. Зарабатывайте SC в играх, чтобы подготовиться к торгам.</p>
+                <p style="color: #8b949e; font-size: 14px;">Система активов в разработке. Копите SC в играх!</p>
             </div>
             <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
         </div>
@@ -188,55 +184,43 @@
     </div>
 
     <script>
-        // ЗАПУСК ПРИ ЗАГРУЗКЕ
         window.onload = function() {
             syncWallet();
-            
-            // Показ заставки на 3 секунды
             setTimeout(() => {
                 const intro = document.getElementById('intro-overlay');
                 intro.style.opacity = '0';
-                
                 setTimeout(() => {
                     intro.style.display = 'none';
-                    checkPlayerIdentity(); // Проверяем имя после заставки
+                    checkPlayerIdentity();
                 }, 1500);
             }, 3000);
         };
 
-        // ПРОВЕРКА ИМЕНИ ИГРОКА
         function checkPlayerIdentity() {
             const savedName = localStorage.getItem('syndicate_nickname');
             if (savedName) {
-                // Если имя уже есть, показываем меню и панель
                 document.getElementById('player-name-display').innerText = savedName;
                 document.getElementById('top-panel').style.display = 'flex';
                 document.getElementById('menu-main').style.display = 'block';
             } else {
-                // Если имени нет, показываем экран регистрации
                 document.getElementById('auth-screen').style.display = 'flex';
             }
         }
 
-        // СОХРАНЕНИЕ ИМЕНИ
         function saveNickname() {
             const inputField = document.getElementById('nickname-input');
             const newName = inputField.value.trim().toUpperCase();
-            
             if (newName.length > 0) {
                 localStorage.setItem('syndicate_nickname', newName);
                 document.getElementById('player-name-display').innerText = newName;
-                
-                // Прячем регистрацию, показываем интерфейс
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('top-panel').style.display = 'flex';
                 document.getElementById('menu-main').style.display = 'block';
             } else {
-                alert("Агент, необходимо ввести позывной!");
+                alert("Игрок, необходимо ввести позывной!");
             }
         }
 
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ БАЛАНСА
         function syncWallet() {
             const coins = localStorage.getItem('syndicate_coins') || 0;
             document.getElementById('wallet-amount').innerText = coins + ' SC';
@@ -245,11 +229,11 @@
             }
         }
 
-        // НАВИГАЦИЯ ПО МЕНЮ
         function openSection(id) {
             document.getElementById('menu-main').style.display = 'none';
             document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'flex';
+            syncWallet();
         }
 
         function goBack() {
@@ -257,11 +241,7 @@
             document.getElementById('menu-main').style.display = 'block';
         }
 
-        // Telegram WebApp API
-        try {
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-        } catch(e) {}
+        try { window.Telegram.WebApp.ready(); } catch(e) {}
     </script>
 </body>
 </html>
