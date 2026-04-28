@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Биржа Синдиката</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0c0c11; color: #fff; user-select: none; }
+        
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        #top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #151520; border-bottom: 1px solid #222; }
+        .btn-back { background: transparent; color: #888; border: 1px solid #444; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-back:active { background: #333; color: #fff; }
+        .balance-badge { background: rgba(255, 157, 0, 0.1); border: 1px solid #ff9d00; padding: 8px 15px; border-radius: 6px; color: #ff9d00; font-weight: bold; font-size: 16px; box-shadow: 0 0 10px rgba(255,157,0,0.2); }
+
+        /* ОСНОВНОЙ КОНТЕЙНЕР (Грид для ПК и Мобилок) */
+        #exchange-layout { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        @media (min-width: 800px) {
+            #exchange-layout { grid-template-columns: 1fr 1.2fr 1.5fr; }
+        }
+
+        .panel { background: #13131c; border: 1px solid #222; border-radius: 12px; padding: 20px; box-sizing: border-box; }
+        .panel-title { color: #58a6ff; font-size: 14px; text-transform: uppercase; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; }
+
+        /* ЛЕВАЯ ПАНЕЛЬ: ВВОД СТАВКИ */
+        .bet-input-wrapper { background: #0a0a0f; border: 2px solid #333; border-radius: 8px; display: flex; align-items: center; padding: 10px; margin-bottom: 20px; transition: 0.3s;}
+        .bet-input-wrapper.focus { border-color: #ff9d00; box-shadow: 0 0 15px rgba(255,157,0,0.3); }
+        .bet-input { background: transparent; border: none; color: #ff9d00; font-size: 24px; font-weight: bold; width: 100%; outline: none; text-align: center; font-family: inherit;}
+        
+        .multipliers { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;}
+        .btn-multi { flex: 1; background: #222; color: #aaa; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-multi:active { transform: scale(0.95); }
+        .btn-multi.active { background: #58a6ff; color: #000; box-shadow: 0 0 10px #58a6ff;}
+
+        /* ЦЕНТР: РУЛЕТКА (АПГРЕЙД) */
+        .center-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;}
+        .wheel-container { position: relative; width: 220px; height: 220px; margin: 20px 0; }
+        .wheel-base { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#ffcc00 0deg, #ffcc00 180deg, #222 180deg, #222 360deg); box-shadow: 0 0 30px rgba(0,0,0,0.8) inset; }
+        .wheel-inner { position: absolute; top: 15px; left: 15px; width: 190px; height: 190px; border-radius: 50%; background: #13131c; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        /* Стрелка, которая будет крутиться */
+        .pointer-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1); transform: rotate(0deg); }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #fff; filter: drop-shadow(0 0 5px #fff); }
+
+        .chance-text { font-size: 32px; font-weight: bold; color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.5); }
+        .chance-label { font-size: 12px; color: #888; text-transform: uppercase; }
+
+        .btn-upgrade { background: linear-gradient(90deg, #ff9d00, #ffcc00); color: #000; border: none; padding: 18px; width: 100%; font-family: inherit; font-weight: bold; font-size: 18px; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255,157,0,0.4); margin-top: 20px; transition: 0.2s;}
+        .btn-upgrade:active { transform: scale(0.97); }
+        .btn-upgrade:disabled { background: #333; color: #555; box-shadow: none; cursor: not-allowed; }
+
+        /* ПРАВАЯ ПАНЕЛЬ: ВИТРИНА */
+        .target-item-preview { background: rgba(88,166,255,0.1); border: 1px solid #58a6ff; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; min-height: 120px;}
+        .target-item-preview h3 { margin: 5px 0 10px 0; color: #fff; font-size: 18px; }
+        .target-price { color: #ff9d00; font-weight: bold; font-size: 18px; background: #000; padding: 5px 15px; border-radius: 20px; border: 1px solid #333;}
+        .target-emoji { font-size: 40px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .item-card { background: #1a1a24; border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; position: relative;}
+        .item-card:active { transform: scale(0.95); }
+        .item-card.selected { border-color: #00ffcc; background: rgba(0,255,204,0.1); box-shadow: 0 0 15px rgba(0,255,204,0.2); }
+        .item-emoji { font-size: 30px; margin-bottom: 5px; }
+        .item-name { font-size: 11px; color: #ccc; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-price { font-size: 12px; font-weight: bold; color: #ff9d00; }
+        
+        /* Скроллбар */
+        .items-grid::-webkit-scrollbar { width: 5px; }
+        .items-grid::-webkit-scrollbar-track { background: #111; border-radius: 5px; }
+        .items-grid::-webkit-scrollbar-thumb { background: #444; border-radius: 5px; }
+
+        /* МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТА */
+        #result-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;}
+        .modal-box { background: #151520; border-radius: 15px; padding: 30px; text-align: center; width: 100%; max-width: 350px; border: 2px solid #333; animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-title { font-size: 28px; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
+        .modal-win { color: #00ffcc; text-shadow: 0 0 15px rgba(0,255,204,0.5); }
+        .modal-lose { color: #da3633; text-shadow: 0 0 15px rgba(218,54,51,0.5); }
+        .modal-emoji { font-size: 60px; margin: 15px 0; }
+        .modal-desc { font-size: 16px; color: #aaa; margin-bottom: 25px; }
+        .btn-modal { background: #fff; color: #000; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase;}
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <button class="btn-back" onclick="window.location.href='index.html'">← В ХАБ</button>
+        <div class="balance-badge">💎 <span id="ui-balance">0</span> SC</div>
+    </div>
+
+    <div id="exchange-layout">
+        
+        <div class="panel">
+            <div class="panel-title">1. Ваша Ставка</div>
+            <div class="bet-input-wrapper" id="bet-wrapper">
+                <input type="number" id="input-bet" class="bet-input" value="100" min="1" oninput="calculateChance()">
+            </div>
+            
+            <div class="multipliers">
+                <button class="btn-multi" onclick="multiplyBet(0.5)">/2</button>
+                <button class="btn-multi" onclick="multiplyBet(2)">x2</button>
+                <button class="btn-multi" onclick="setBet('max')">MAX</button>
+            </div>
+            <p style="color: #666; font-size: 12px; line-height: 1.5;">Сумма будет списана с баланса. Комиссия биржи составляет 10% от вероятности сделки.</p>
+        </div>
+
+        <div class="panel center-panel">
+            <div class="panel-title">2. Вероятность</div>
+            
+            <div class="wheel-container">
+                <div class="wheel-base" id="wheel-color"></div>
+                <div class="wheel-inner">
+                    <div class="chance-text" id="ui-chance">0.00%</div>
+                    <div class="chance-label">УСПЕХ СДЕЛКИ</div>
+                </div>
+                <div class="pointer-wrapper" id="spinner-pointer">
+                    <div class="pointer"></div>
+                </div>
+            </div>
+
+            <button class="btn-upgrade" id="btn-spin" onclick="startSpin()">АПГРЕЙД 🚀</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">3. Желаемый Актив</div>
+            
+            <div class="target-item-preview">
+                <div class="target-emoji" id="target-emoji">❓</div>
+                <h3 id="target-name">Выберите актив</h3>
+                <div class="target-price" id="target-price">0 SC</div>
+            </div>
+
+            <div class="items-grid" id="items-container">
+                </div>
+        </div>
+
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-box" id="modal-box">
+            <div class="modal-title" id="modal-title">РЕЗУЛЬТАТ</div>
+            <div class="modal-emoji" id="modal-emoji">📦</div>
+            <div class="modal-desc" id="modal-desc">Текст</div>
+            <button class="btn-modal" onclick="closeModal()">ПРОДОЛЖИТЬ</button>
+        </div>
+    </div>
+
+    <script>
+        // БАЗА АКТИВОВ БИРЖИ
+        const marketItems = [
+            { id: 'sc_x2', name: 'Пакет 500 SC', price: 500, emoji: '💎', type: 'currency' },
+            { id: 'sc_x5', name: 'Пакет 2000 SC', price: 2000, emoji: '💰', type: 'currency' },
+            { id: 'share_dakar', name: 'Акция: Дакар 28', price: 2500, emoji: '🚚', type: 'item' },
+            { id: 'share_hoops', name: 'Акция: Hoops 28', price: 2500, emoji: '🏀', type: 'item' },
+            { id: 'share_red', name: 'Акция: Кр. Протокол', price: 2500, emoji: '🔐', type: 'item' },
+            { id: 'share_mundial', name: 'Акция: Мундиаль', price: 2500, emoji: '⚽', type: 'item' },
+            { id: 'stat_silver', name: 'Статус: Серебро', price: 5000, emoji: '🥈', type: 'item' },
+            { id: 'stat_gold', name: 'Статус: Золото', price: 10000, emoji: '🥇', type: 'item' },
+            { id: 'ingot', name: 'Золотой Слиток', price: 15000, emoji: '🪙', type: 'item' },
+            { id: 'stat_plat', name: 'Статус: Платина', price: 25000, emoji: '💠', type: 'item' },
+            { id: 'stat_diam', name: 'Статус: Алмаз', price: 50000, emoji: '👑', type: 'item' }
+        ];
+
+        let userBalance = 0;
+        let selectedItem = null;
+        let currentChance = 0;
+        let isSpinning = false;
+
+        // ИНИЦИАЛИЗАЦИЯ
+        window.onload = function() {
+            try { window.Telegram.WebApp.ready(); } catch(e) {}
+            loadBalance();
+            renderItems();
+            
+            // Фокус на поле ввода
+            const betInput = document.getElementById('input-bet');
+            const wrapper = document.getElementById('bet-wrapper');
+            betInput.addEventListener('focus', () => wrapper.classList.add('focus'));
+            betInput.addEventListener('blur', () => wrapper.classList.remove('focus'));
+            
+            // По умолчанию выбираем первый предмет
+            selectItem(marketItems[0].id);
+        }
+
+        function loadBalance() {
+            userBalance = parseInt(localStorage.getItem('syndicate_coins')) || 0;
+            document.getElementById('ui-balance').innerText = userBalance;
+        }
+
+        function saveBalance(newAmount) {
+            userBalance = newAmount;
+            localStorage.setItem('syndicate_coins', userBalance);
+            document.getElementById('ui-balance').innerText = userBalance;
+        }
+
+        // РЕНДЕР ВИТРИНЫ
+        function renderItems() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+
+            marketItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item-card';
+                div.id = 'card-' + item.id;
+                div.onclick = () => selectItem(item.id);
+                
+                div.innerHTML = `
+                    <div class="item-emoji">${item.emoji}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-price">${item.price} SC</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectItem(id) {
+            if (isSpinning) return;
+            
+            // Сброс старого выбора
+            document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('card-' + id).classList.add('selected');
+
+            selectedItem = marketItems.find(i => i.id === id);
+            
+            // Обновляем превью
+            document.getElementById('target-emoji').innerText = selectedItem.emoji;
+            document.getElementById('target-name').innerText = selectedItem.name;
+            document.getElementById('target-price').innerText = selectedItem.price + ' SC';
+
+            calculateChance();
+        }
+
+        // УПРАВЛЕНИЕ СТАВКОЙ
+        function multiplyBet(mult) {
+            if (isSpinning) return;
+            let bet = parseInt(document.getElementById('input-bet').value) || 0;
+            bet = Math.floor(bet * mult);
+            if (bet < 1) bet = 1;
+            document.getElementById('input-bet').value = bet;
+            calculateChance();
+        }
+
+        function setBet(type) {
+            if (isSpinning) return;
+            if (type === 'max') {
+                document.getElementById('input-bet').value = userBalance > 0 ? userBalance : 1;
+            }
+            calculateChance();
+        }
+
+        // РАСЧЕТ МАТЕМАТИКИ
+        function calculateChance() {
+            let bet = parseInt(document.getElementById('input-bet').value) || 0;
+            const btn = document.getElementById('btn-spin');
+
+            if (!selectedItem || bet <= 0) {
+                currentChance = 0;
+                btn.disabled = true;
+            } else {
+                // Формула: (Ставка / Цена) * 100 * 0.9 (Маржа 10%)
+                let rawChance = (bet / selectedItem.price) * 100 * 0.9;
+                
+                // Ограничения
+                if (rawChance > 95) currentChance = 95; // Максимум 95% для азарта
+                else if (rawChance < 0.1) currentChance = 0.1; // Минимум
+                else currentChance = rawChance;
+
+                // Блокируем кнопку, если денег нет
+                if (bet > userBalance) {
+                    btn.disabled = true;
+                    document.getElementById('ui-chance').innerText = "НЕТ SC";
+                    document.getElementById('ui-chance').style.color = "#da3633";
+                    updateWheelColor(0);
+                    return;
+                } else {
+                    btn.disabled = false;
+                }
+            }
+
+            // Отрисовка
+            document.getElementById('ui-chance').innerText = currentChance.toFixed(2) + '%';
+            
+            // Цветовое кодирование
+            let color = "#ffcc00"; // Желтый для базы
+            if (currentChance >= 50) color = "#00ffcc"; // Зеленый для хорошего шанса
+            if (currentChance < 10) color = "#da3633"; // Красный для риска
+            
+            document.getElementById('ui-chance').style.color = color;
+            updateWheelColor(currentChance, color);
+        }
+
+        // ОТРИСОВКА БАРАБАНА (CONIC GRADIENT)
+        function updateWheelColor(chancePct, color = "#ffcc00") {
+            const wheel = document.getElementById('wheel-color');
+            // Переводим проценты в градусы (100% = 360deg)
+            let deg = (chancePct / 100) * 360;
+            // Рисуем победную зону (с 0 градусов до deg), остальное - темное
+            wheel.style.background = `conic-gradient(${color} 0deg, ${color} ${deg}deg, #222 ${deg}deg, #222 360deg)`;
+        }
+
+        // КРУТИМ БАРАБАН
+        function startSpin() {
+            if (isSpinning || !selectedItem) return;
+            let bet = parseInt(document.getElementById('input-bet').value) || 0;
+            
+            if (bet > userBalance) {
+                alert("Недостаточно SC на балансе!"); return;
+            }
+
+            // 1. Снимаем деньги
+            isSpinning = true;
+            saveBalance(userBalance - bet);
+            document.getElementById('btn-spin').disabled = true;
+
+            // 2. Бросаем кубик (от 0 до 100)
+            const roll = Math.random() * 100;
+            const isWin = roll <= currentChance;
+
+            // 3. Вычисляем градус остановки стрелки
+            // Победная зона от 0 до (currentChance * 3.6) градусов
+            const winZoneDeg = currentChance * 3.6;
+            let stopDeg = 0;
+
+            if (isWin) {
+                // Стрелка должна остановиться ВНУТРИ победной зоны (чуть отступив от краев)
+                stopDeg = 5 + Math.random() * (winZoneDeg - 10);
+                if (stopDeg < 0) stopDeg = winZoneDeg / 2; // защита от багов при мелком шансе
+            } else {
+                // Стрелка должна остановиться ВНЕ победной зоны
+                stopDeg = winZoneDeg + 5 + Math.random() * (360 - winZoneDeg - 10);
+            }
+
+            // Добавляем 5 полных оборотов (1800 градусов) для эффекта рулетки
+            const totalRotation = 1800 + stopDeg;
+
+            // Запускаем анимацию CSS
+            const pointer = document.getElementById('spinner-pointer');
+            pointer.style.transition = 'transform 4s cubic-bezier(0.1, 0.9, 0.2, 1)'; // Плавное замедление
+            pointer.style.transform = `rotate(${totalRotation}deg)`;
+
+            try { window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy'); } catch(e){}
+
+            // 4. Ждем конца анимации (4 секунды)
+            setTimeout(() => {
+                showResult(isWin);
+            }, 4100);
+        }
+
+        // РЕЗУЛЬТАТ
+        function showResult(isWin) {
+            const modal = document.getElementById('result-modal');
+            const title = document.getElementById('modal-title');
+            const emoji = document.getElementById('modal-emoji');
+            const desc = document.getElementById('modal-desc');
+            const box = document.getElementById('modal-box');
+
+            if (isWin) {
+                title.innerText = "АПГРЕЙД УСПЕШЕН!";
+                title.className = "modal-title modal-win";
+                box.style.borderColor = "#00ffcc";
+                emoji.innerText = selectedItem.emoji;
+                
+                if (selectedItem.type === 'currency') {
+                    desc.innerText = `Вы успешно умножили капитал.\nНачислено: +${selectedItem.price} SC`;
+                    saveBalance(userBalance + selectedItem.price);
+                } else {
+                    desc.innerText = `Новый актив в вашем портфеле:\n${selectedItem.name}`;
+                    // Сохраняем предмет в инвентарь (localStorage массив)
+                    let inv = JSON.parse(localStorage.getItem('syndicate_inventory')) || [];
+                    inv.push(selectedItem.name);
+                    localStorage.setItem('syndicate_inventory', JSON.stringify(inv));
+                }
+                try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('success'); } catch(e){}
+            } else {
+                title.innerText = "СДЕЛКА ПРОГОРЕЛА";
+                title.className = "modal-title modal-lose";
+                box.style.borderColor = "#da3633";
+                emoji.innerText = "📉";
+                desc.innerText = "Активы ликвидированы. Рынок не прощает ошибок. Попробуйте изменить стратегию.";
+                try { window.Telegram.WebApp.HapticFeedback.notificationOccurred('error'); } catch(e){}
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+            isSpinning = false;
+            calculateChance(); // Обновит доступность кнопки
+            
+            // Сброс анимации стрелки (без плавности, чтобы незаметно вернуть в 0)
+            const pointer = document.getElementById('spinner-pointer');
+            pointer.style.transition = 'none';
+            pointer.style.transform = `rotate(0deg)`;
+        }
+    </script>
+</body>
+</html>
