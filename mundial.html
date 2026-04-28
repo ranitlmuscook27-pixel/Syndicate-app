@@ -33,7 +33,28 @@
 
         #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
         
-        #btn-quit-match { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #aaa; border: 1px solid #555; padding: 6px 10px; border-radius: 6px; font-size: 10px; pointer-events: auto; cursor: pointer; text-transform: uppercase; font-weight: bold; z-index: 20;}
+        /* НОВАЯ КНОПКА ВЫХОДА (Квадрат в правом нижнем углу) */
+        #btn-quit-match { 
+            position: absolute; 
+            bottom: 20px; 
+            right: 15px; 
+            background: rgba(0,0,0,0.7); 
+            color: #aaa; 
+            border: 2px solid #555; 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 10px; 
+            font-size: 22px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            pointer-events: auto; 
+            cursor: pointer; 
+            font-weight: bold; 
+            z-index: 20;
+            padding: 0;
+            line-height: 1;
+        }
         #btn-quit-match:active { background: #da3633; color: white; border-color: #da3633;}
 
         #scoreboard { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 1px solid #00ffcc; border-radius: 6px; padding: 5px 10px; display: flex; flex-direction: column; width: auto; min-width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: auto; }
@@ -47,7 +68,8 @@
 
         #turn-msg { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 16px; font-weight: bold; text-shadow: 0 2px 4px #000; transition: 0.3s; letter-spacing: 1px;}
 
-        #power-container { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 250px; height: 20px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 10px; overflow: hidden; display: none; }
+        /* Чуть сдвинул полосу силы влево, чтобы не конфликтовала с кнопкой выхода */
+        #power-container { position: absolute; bottom: 32px; left: 45%; transform: translateX(-50%); width: 65%; max-width: 250px; height: 20px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 10px; overflow: hidden; display: none; }
         #power-fill { width: 0%; height: 100%; background: #fff; transition: width 0.05s linear, background-color 0.1s; }
         .power-markers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; }
         .marker { border-right: 2px solid #000; height: 100%; flex: 1; box-sizing: border-box; }
@@ -61,7 +83,7 @@
     </style>
 </head>
 <body>
-    <div class="version">Mundial v4.0 (Pro Physics & Goalie Jump)</div>
+    <div class="version">Mundial v4.1 (UI & Goal Fix)</div>
 
     <div id="screen-intro" class="screen active-screen">
         <h1>⚽ Мундиаль 26</h1>
@@ -128,7 +150,8 @@
     <div id="screen-game" class="screen" style="padding:0; background: none;">
         <canvas id="gameCanvas"></canvas>
         <div id="game-ui">
-            <button id="btn-quit-match" onclick="quitMatchEarly()">Выход</button>
+            <button id="btn-quit-match" onclick="quitMatchEarly()">✖</button>
+            
             <div id="scoreboard">
                 <div class="score-row">
                     <div class="team-name" id="sb-t1-name">КОМАНДА 1</div>
@@ -291,15 +314,15 @@
             }
         }
 
-        // --- ИГРОВОЙ ДВИЖОК CANVAS (ПРО ФИЗИКА) ---
+        // --- ИГРОВОЙ ДВИЖОК CANVAS ---
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         let animId;
 
         let ball = { x: 0, y: 0, z: 2.0, active: false, targetX: 0, targetY: 0, rotation: 0 };
-        // Вратарь: targetY добавлен для красивых прыжков в девятку
         let goalie = { x: 0, y: 0, targetX: 0, targetY: 0, diveExtX: 0, diveExtY: 0 };
-        let goalArea = { x: 0, y: 0, w: 280, h: 120 }; 
+        // ВОРОТА СТАЛИ ШИРЕ И ВЫШЕ
+        let goalArea = { x: 0, y: 0, w: 340, h: 140 }; 
         let fans = [];
         
         let powerState = { active: false, value: 0, x: 0, y: 0 };
@@ -366,7 +389,7 @@
             let px = e.touches ? e.touches[0].clientX : e.clientX;
             let py = e.touches ? e.touches[0].clientY : e.clientY;
 
-            if (py < goalArea.y + 100 && py > goalArea.y - 120) {
+            if (py < goalArea.y + 120 && py > goalArea.y - 140) {
                 powerState.active = true;
                 powerState.value = 0;
                 powerState.x = px;
@@ -416,7 +439,6 @@
                 ball.rotation += 0.2;
                 if (ball.z < 0.6) ball.z = 0.6; 
                 
-                // Физика прыжка вратаря
                 goalie.x += (goalie.targetX - goalie.x) * 0.1;
                 goalie.y += (goalie.targetY - goalie.y) * 0.1;
                 goalie.diveExtX = (goalie.targetX - goalArea.x);
@@ -467,13 +489,13 @@
             ctx.moveTo(goalArea.x + 220, goalArea.y); ctx.lineTo(goalArea.x + 400, canvas.height); ctx.stroke();
             
             ctx.beginPath();
-            ctx.moveTo(goalArea.x - 80, goalArea.y); ctx.lineTo(goalArea.x - 120, goalArea.y + pitchH * 0.25);
-            ctx.lineTo(goalArea.x + 120, goalArea.y + pitchH * 0.25); ctx.lineTo(goalArea.x + 80, goalArea.y); ctx.stroke();
+            ctx.moveTo(goalArea.x - 90, goalArea.y); ctx.lineTo(goalArea.x - 140, goalArea.y + pitchH * 0.25);
+            ctx.lineTo(goalArea.x + 140, goalArea.y + pitchH * 0.25); ctx.lineTo(goalArea.x + 90, goalArea.y); ctx.stroke();
             
             ctx.fillStyle = "#fff";
             ctx.beginPath(); ctx.ellipse(goalArea.x, canvas.height * 0.75, 12, 4, 0, 0, Math.PI*2); ctx.fill();
             
-            ctx.beginPath(); ctx.ellipse(goalArea.x, canvas.height * 0.95, 120, 30, 0, Math.PI, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(goalArea.x, canvas.height * 0.95, 140, 35, 0, Math.PI, Math.PI*2); ctx.stroke();
         }
 
         function drawGoal() {
@@ -502,45 +524,35 @@
 
         function drawGoalie() {
             ctx.save();
-            // Переносим центр координат в точку вратаря
             ctx.translate(goalie.x, goalie.y - 25);
             
-            // Расчет угла наклона (рыбка). Чем сильнее прыжок вбок (X), тем больше наклон.
             let diveAngle = (goalie.diveExtX / 150) * (Math.PI / 2.2); 
-            // Ограничиваем угол, чтобы он не крутился как юла
             diveAngle = Math.max(-Math.PI/2, Math.min(Math.PI/2, diveAngle));
             ctx.rotate(diveAngle);
 
-            // Тело
             ctx.fillStyle = "#ffcc00"; 
             ctx.fillRect(-12, -20, 24, 40);
             
-            // Ноги
             ctx.fillStyle = "#111";
             ctx.fillRect(-10, 20, 8, 20); 
             ctx.fillRect(2, 20, 8, 20); 
 
-            // Голова
             ctx.fillStyle = "#ffdbac";
             ctx.beginPath(); ctx.arc(0, -28, 10, 0, Math.PI*2); ctx.fill();
 
-            // Руки (Тянутся ВВЕРХ относительно тела, когда он летит боком)
             ctx.strokeStyle = "#ffcc00";
             ctx.lineWidth = 8;
             ctx.lineCap = "round";
             ctx.beginPath();
             
             if (Math.abs(goalie.diveExtX) > 20) { 
-                // В полете - руки вытянуты как у Супермена
                 ctx.moveTo(-10, -10); ctx.lineTo(-15, -45); 
                 ctx.moveTo(10, -10); ctx.lineTo(15, -45); 
             } else { 
-                // Стоит спокойно
                 ctx.moveTo(-12, -10); ctx.lineTo(-20, 15);
                 ctx.moveTo(12, -10); ctx.lineTo(20, 15);
             }
             ctx.stroke();
-
             ctx.restore();
         }
 
@@ -580,15 +592,13 @@
             let gw = goalArea.w;
             let gh = goalArea.h;
 
-            // Проверяем, попал ли вообще в створ
             let inGoalX = tx > goalArea.x - gw/2 && tx < goalArea.x + gw/2;
             let inGoalY = ty > goalArea.y - gh && ty < goalArea.y;
 
-            // Логика "Девяток" и "Шестерок"
             let isCorner = false;
             if (inGoalX && inGoalY) {
-                let edgeX = gw * 0.25; // 25% ширины от края
-                let edgeY = gh * 0.35; // 35% высоты
+                let edgeX = gw * 0.25; 
+                let edgeY = gh * 0.35; 
                 
                 let isLeft = tx < (goalArea.x - gw/2 + edgeX);
                 let isRight = tx > (goalArea.x + gw/2 - edgeX);
@@ -603,22 +613,20 @@
             let isGoal = false;
             let isMissOverbar = false;
             
-            if (power > 5.0) power = 5.0; // Защита от багов
+            if (power > 5.0) power = 5.0; 
 
-            // УДАР ПО ВОРОБЬЯМ
             if (power > 4.5) {
                 isMissOverbar = true;
             }
 
-            // РАСЧЕТ ШАНСА НА ГОЛ
             let chance = 0;
             if (!isMissOverbar) {
                 if (isCorner) {
-                    if (power >= 2.0 && power <= 4.0) chance = 0.98; // Идеально в угол
+                    if (power >= 2.0 && power <= 4.0) chance = 0.98; 
                     else if (power > 4.0 && power <= 4.5) chance = 0.30;
                     else chance = 0.20; 
                 } else {
-                    if (power >= 3.0 && power <= 4.0) chance = 0.95; // По центру
+                    if (power >= 3.0 && power <= 4.0) chance = 0.95; 
                     else if (power > 4.0 && power <= 4.5) chance = 0.30;
                     else chance = 0.20; 
                 }
@@ -630,27 +638,24 @@
                 isGoal = Math.random() <= chance;
             }
 
-            // НАПРАВЛЕНИЕ МЯЧА И ПРЫЖОК ВРАТАРЯ
             if (isMissOverbar || !inGoalX || !inGoalY) {
                 ball.targetX = tx;
                 ball.targetY = isMissOverbar ? goalArea.y - 180 : ty; 
-                goalie.targetX = goalArea.x + (Math.random() > 0.5 ? 40 : -40); // Немного дёрнулся
+                goalie.targetX = goalArea.x + (Math.random() > 0.5 ? 50 : -50); 
                 goalie.targetY = goalArea.y;
             } else {
                 ball.targetX = tx;
                 ball.targetY = ty;
                 
                 if (isGoal) {
-                    // Вратарь не угадал или не дотянулся
                     if (Math.random() > 0.5) {
-                        goalie.targetX = tx > goalArea.x ? goalArea.x - 120 : goalArea.x + 120; // Упал в другой угол
+                        goalie.targetX = tx > goalArea.x ? goalArea.x - 140 : goalArea.x + 140; 
                         goalie.targetY = goalArea.y;
                     } else {
-                        goalie.targetX = tx > goalArea.x ? tx - 50 : tx + 50; // Не долетел
-                        goalie.targetY = ty + 20;
+                        goalie.targetX = tx > goalArea.x ? tx - 60 : tx + 60; 
+                        goalie.targetY = ty + 30;
                     }
                 } else {
-                    // СЕЙВ! Вратарь летит прямо в мяч
                     goalie.targetX = tx;
                     goalie.targetY = ty;
                 }
