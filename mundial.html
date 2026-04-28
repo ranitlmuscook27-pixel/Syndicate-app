@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мундиаль 26 - Syndicate Games</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a14; color: #fff; overflow: hidden; user-select: none; touch-action: none; }
+        
+        /* СИСТЕМА ЭКРАНОВ */
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; padding: 20px; box-sizing: border-box; background: radial-gradient(circle at top, #1a1a2e 0%, #05050a 100%); position: absolute; top: 0; left: 0; width: 100%; z-index: 10; overflow-y: auto; }
+        .active-screen { display: flex; }
+
+        h1 { color: #00ffcc; font-size: 32px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 204, 0.6); margin-bottom: 10px; margin-top: 20px; text-align: center; }
+        h2 { color: #fff; font-size: 20px; margin-bottom: 20px; text-transform: uppercase; text-align: center; border-bottom: 2px solid #00ffcc; padding-bottom: 5px; width: 100%; }
+
+        .game-poster { width: 100%; max-width: 320px; border-radius: 12px; border: 2px solid #00ffcc; box-shadow: 0 0 25px rgba(0,255,204,0.3); margin-bottom: 30px; object-fit: cover; }
+
+        /* КНОПКИ ФИФА СТАЙЛ */
+        .btn-panel { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin-bottom: 20px; }
+        button { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid #333; padding: 18px; width: 100%; font-family: inherit; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: 0.2s; backdrop-filter: blur(5px); }
+        button:active { transform: scale(0.97); }
+        .btn-primary { background: linear-gradient(90deg, #00b09b, #96c93d); border: none; box-shadow: 0 5px 15px rgba(0, 176, 155, 0.4); color: #000; }
+        .btn-danger { background: rgba(218, 54, 51, 0.2); border-color: #da3633; color: #ff6b6b; }
+
+        /* НАСТРОЙКИ */
+        .setup-group { background: rgba(0,0,0,0.5); border: 1px solid #222; border-radius: 8px; padding: 15px; width: 100%; max-width: 320px; margin-bottom: 12px; text-align: left; }
+        .setup-group label { display: block; color: #888; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
+        select { background: transparent; color: #00ffcc; border: none; font-size: 18px; font-weight: bold; width: 100%; outline: none; font-family: inherit; cursor: pointer; }
+        select option { background: #111; color: #fff; }
+
+        /* ТУРНИРНАЯ СЕТКА */
+        .bracket-box { background: rgba(0, 255, 204, 0.05); border: 1px solid #00ffcc; border-radius: 8px; padding: 15px; margin-bottom: 15px; width: 100%; max-width: 320px; text-align: center; }
+        .matchup { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; margin-bottom: 10px; background: #000; padding: 10px; border-radius: 5px; }
+        .matchup.player-match { border: 1px solid #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+
+        /* ИГРОВОЙ UI */
+        #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        #scoreboard { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00ffcc; border-radius: 8px; padding: 10px 15px; display: flex; flex-direction: column; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .team-name { font-size: 14px; font-weight: bold; width: 35%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .team-score { font-size: 22px; font-weight: bold; color: #00ffcc; width: 10%; text-align: center; }
+        .dots-container { display: flex; gap: 4px; width: 50%; justify-content: flex-end; flex-wrap: nowrap; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; background: #222; border: 1px solid #555; }
+        .dot.hit { background: #00ffcc; border-color: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
+        .dot.miss { background: #da3633; border-color: #da3633; box-shadow: 0 0 5px #da3633; }
+
+        #turn-msg { position: absolute; top: 95px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; text-shadow: 0 2px 4px #000; transition: 0.3s; }
+
+        /* ИНДИКАТОР СИЛЫ (POWER BAR) */
+        #power-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 300px; height: 25px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 15px; overflow: hidden; display: none; }
+        #power-fill { width: 0%; height: 100%; background: #fff; transition: width 0.05s linear, background-color 0.1s; }
+        .power-markers { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; }
+        .marker { border-right: 2px solid #000; height: 100%; flex: 1; box-sizing: border-box; }
+        
+        #target-cursor { position: absolute; width: 40px; height: 40px; border: 2px dashed #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+        canvas { display: block; width: 100vw; height: 100vh; background: #081b08; cursor: crosshair; }
+        .version { font-size: 10px; color: #555; position: absolute; top: 10px; right: 10px; z-index: 20;}
+    </style>
+</head>
+<body>
+    <div class="version">Mundial v1.0</div>
+
+    <div id="screen-intro" class="screen active-screen">
+        <h1>⚽ Мундиаль 26</h1>
+        <img src="https://sun9-85.userapi.com/s/v1/ig2/jbTE3bcwncZn8GNwb9GhG9GwoKbB37gaSyE_sMZq0Bkm8atWayVYORfjJA-L5DW_w6kjxpcrE3l5rqZ2vYI8Pf2R.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x119,240x179,360x269,480x358,540x403,640x478,720x538,1080x806,1200x896&from=bu&u=XKNWGwmPq6I_rCJN2t6z1au03wGPdb5z-Vb70wukruw&cs=1200x0" class="game-poster">
+        <div class="btn-panel">
+            <button class="btn-primary" onclick="switchScreen('screen-modes')">МЕНЮ РЕЖИМОВ</button>
+            <button class="btn-danger" onclick="window.location.href='index.html'">В ХАБ</button>
+        </div>
+    </div>
+
+    <div id="screen-modes" class="screen">
+        <h2>ВЫБЕРИТЕ РЕЖИМ</h2>
+        <div class="btn-panel" style="margin-top: 20px;">
+            <button onclick="selectMode('quick')">⚡ Быстрый матч</button>
+            <button onclick="selectMode('pvp')">👥 Игрок vs Игрок</button>
+            <button class="btn-primary" onclick="selectMode('tournament')">🏆 ТУРНИР (1/4 ФИНАЛА)</button>
+            <button class="btn-danger" style="margin-top: 20px;" onclick="switchScreen('screen-intro')">НАЗАД</button>
+        </div>
+    </div>
+
+    <div id="screen-setup" class="screen">
+        <h2 id="setup-title">НАСТРОЙКИ МАТЧА</h2>
+        
+        <div class="setup-group">
+            <label id="lbl-team1">Ваша Команда</label>
+            <select id="sel-team1"></select>
+        </div>
+
+        <div class="setup-group" id="grp-team2">
+            <label id="lbl-team2">Команда Соперника</label>
+            <select id="sel-team2"></select>
+        </div>
+
+        <div class="setup-group" id="grp-kicks">
+            <label>Количество ударов</label>
+            <select id="sel-kicks">
+                <option value="4">4 удара</option>
+                <option value="6">6 ударов</option>
+                <option value="8">8 ударов</option>
+            </select>
+        </div>
+
+        <div class="btn-panel">
+            <button class="btn-primary" onclick="launchMode()">ГОТОВО</button>
+            <button onclick="switchScreen('screen-modes')">НАЗАД</button>
+        </div>
+    </div>
+
+    <div id="screen-bracket" class="screen">
+        <h2 id="bracket-title">1/4 ФИНАЛА</h2>
+        <div id="bracket-container" style="width: 100%; max-width: 320px;"></div>
+        <div class="btn-panel" style="margin-top: 20px;">
+            <button class="btn-primary" onclick="startTournamentMatch()">СЫГРАТЬ СВОЙ МАТЧ</button>
+            <button class="btn-danger" onclick="switchScreen('screen-modes')">ПОКИНУТЬ ТУРНИР</button>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <h1 id="res-title" style="font-size: 40px; margin-top: 40px;">ПОБЕДА</h1>
+        <h2 id="res-score" style="font-size: 50px; color: #fff; border: none;">0 : 0</h2>
+        <p id="res-reward" style="font-size: 20px; color: #00ffcc; font-weight: bold; margin-bottom: 30px;"></p>
+        <div class="btn-panel">
+            <button class="btn-primary" id="btn-next-action" onclick="handleResultNext()">ПРОДОЛЖИТЬ</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="game-ui">
+        <div id="scoreboard">
+            <div class="score-row">
+                <div class="team-name" id="sb-t1-name">КОМАНДА 1</div>
+                <div class="team-score" id="sb-t1-score">0</div>
+                <div class="dots-container" id="sb-t1-dots"></div>
+            </div>
+            <div style="width: 100%; height: 1px; background: #333; margin: 2px 0;"></div>
+            <div class="score-row">
+                <div class="team-name" id="sb-t2-name">КОМАНДА 2</div>
+                <div class="team-score" id="sb-t2-score">0</div>
+                <div class="dots-container" id="sb-t2-dots"></div>
+            </div>
+        </div>
+        
+        <div id="turn-msg">ВАШ УДАР</div>
+        <div id="target-cursor"></div>
+        
+        <div id="power-container">
+            <div class="power-markers">
+                <div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker" style="border:none;"></div>
+            </div>
+            <div id="power-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        // БАЗА КОМАНД
+        const teamsDB = [
+            { id: 1, name: "ЯДРО", emoji: "💥" },
+            { id: 2, name: "ЗВЕЗДА", emoji: "⭐" },
+            { id: 3, name: "АТОМ", emoji: "⚛️" },
+            { id: 4, name: "ЦУНАМИ", emoji: "🌊" },
+            { id: 5, name: "УРАГАН", emoji: "🌪️" },
+            { id: 6, name: "ТОРНАДО", emoji: "🌀" },
+            { id: 7, name: "МОЛНИИ", emoji: "⚡" },
+            { id: 8, name: "СТРЕЛА", emoji: "🏹" }
+        ];
+
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        let currentMode = '';
+        let matchData = { t1: null, t2: null, kicks: 5, t1Score: 0, t2Score: 0, t1History: [], t2History: [], currentRound: 0, turn: 1 };
+        let tourneyData = { active: false, round: 0, playerTeam: null, teamsLeft: [] };
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(id).classList.add('active-screen');
+            document.getElementById('game-ui').style.display = 'none';
+        }
+
+        // ЗАПОЛНЕНИЕ СЕЛЕКТОВ
+        function populateSelect(id) {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '';
+            teamsDB.forEach(t => {
+                let opt = document.createElement('option');
+                opt.value = t.id;
+                opt.innerText = `${t.emoji} ${t.name}`;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ВЫБОР РЕЖИМА И НАСТРОЙКА
+        function selectMode(mode) {
+            currentMode = mode;
+            populateSelect('sel-team1');
+            populateSelect('sel-team2');
+            document.getElementById('sel-team2').value = 2; // Default AI
+            
+            if (mode === 'quick') {
+                document.getElementById('setup-title').innerText = "БЫСТРЫЙ МАТЧ";
+                document.getElementById('lbl-team1').innerText = "Ваша Команда";
+                document.getElementById('grp-team2').style.display = 'block';
+                document.getElementById('lbl-team2').innerText = "ИИ Соперник";
+                document.getElementById('grp-kicks').style.display = 'block';
+            } else if (mode === 'pvp') {
+                document.getElementById('setup-title').innerText = "ИГРОК ПРОТИВ ИГРОКА";
+                document.getElementById('lbl-team1').innerText = "Игрок 1";
+                document.getElementById('grp-team2').style.display = 'block';
+                document.getElementById('lbl-team2').innerText = "Игрок 2";
+                document.getElementById('grp-kicks').style.display = 'block';
+            } else if (mode === 'tournament') {
+                document.getElementById('setup-title').innerText = "НАСТРОЙКА ТУРНИРА";
+                document.getElementById('lbl-team1').innerText = "Выберите свой клуб";
+                document.getElementById('grp-team2').style.display = 'none';
+                document.getElementById('grp-kicks').style.display = 'block'; // Пусть будет настройка длины
+            }
+            switchScreen('screen-setup');
+        }
+
+        function launchMode() {
+            let t1Id = parseInt(document.getElementById('sel-team1').value);
+            let kicks = parseInt(document.getElementById('sel-kicks').value);
+            
+            if (currentMode === 'tournament') {
+                tourneyData.active = true;
+                tourneyData.round = 0; // 0: 1/4, 1: 1/2, 2: Final
+                tourneyData.playerTeam = teamsDB.find(t => t.id === t1Id);
+                
+                // Перемешиваем остальные 7 команд
+                let others = teamsDB.filter(t => t.id !== t1Id).sort(() => 0.5 - Math.random());
+                tourneyData.teamsLeft = [tourneyData.playerTeam, ...others]; // Игрок всегда индекс 0
+                
+                matchData.kicks = kicks;
+                buildBracket();
+                switchScreen('screen-bracket');
+            } else {
+                let t2Id = parseInt(document.getElementById('sel-team2').value);
+                if(t1Id === t2Id && currentMode !== 'pvp') {
+                    alert("В Быстром матче команды должны различаться!"); return;
+                }
+                setupMatch(teamsDB.find(t=>t.id===t1Id), teamsDB.find(t=>t.id===t2Id), kicks);
+                startGame();
+            }
+        }
+
+        // --- ЛОГИКА ТУРНИРА ---
+        function buildBracket() {
+            const titles = ["1/4 ФИНАЛА", "ПОЛУФИНАЛ", "ФИНАЛ"];
+            document.getElementById('bracket-title').innerText = titles[tourneyData.round];
+            
+            const cont = document.getElementById('bracket-container');
+            cont.innerHTML = '';
+            
+            for(let i=0; i < tourneyData.teamsLeft.length; i+=2) {
+                let tA = tourneyData.teamsLeft[i];
+                let tB = tourneyData.teamsLeft[i+1];
+                let isPlayerMatch = (tA.id === tourneyData.playerTeam.id || tB.id === tourneyData.playerTeam.id);
+                
+                let html = `<div class="matchup ${isPlayerMatch ? 'player-match' : ''}">
+                    <span>${tA.emoji} ${tA.name}</span>
+                    <span style="color:#555; font-size: 14px;">VS</span>
+                    <span>${tB.name} ${tB.emoji}</span>
+                </div>`;
+                cont.innerHTML += html;
+            }
+        }
+
+        function startTournamentMatch() {
+            // Игрок всегда играет матч tourneyData.teamsLeft[0] vs [1]
+            setupMatch(tourneyData.teamsLeft[0], tourneyData.teamsLeft[1], matchData.kicks);
+            startGame();
+        }
+
+        // --- ЛОГИКА МАТЧА ---
+        function setupMatch(team1, team2, kicks) {
+            matchData.t1 = team1;
+            matchData.t2 = team2;
+            matchData.kicks = kicks;
+            matchData.t1Score = 0;
+            matchData.t2Score = 0;
+            matchData.t1History = Array(kicks).fill('empty');
+            matchData.t2History = Array(kicks).fill('empty');
+            matchData.currentRound = 0;
+            matchData.turn = 1; // 1 = T1, 2 = T2
+        }
+
+        function updateUI() {
+            document.getElementById('sb-t1-name').innerText = matchData.t1.emoji + " " + matchData.t1.name;
+            document.getElementById('sb-t2-name').innerText = matchData.t2.emoji + " " + matchData.t2.name;
+            document.getElementById('sb-t1-score').innerText = matchData.t1Score;
+            document.getElementById('sb-t2-score').innerText = matchData.t2Score;
+
+            const makeDots = (hist) => hist.map(h => `<div class="dot ${h}"></div>`).join('');
+            document.getElementById('sb-t1-dots').innerHTML = makeDots(matchData.t1History);
+            document.getElementById('sb-t2-dots').innerHTML = makeDots(matchData.t2History);
+
+            let msg = document.getElementById('turn-msg');
+            if (currentMode === 'pvp') {
+                msg.innerText = matchData.turn === 1 ? `БЬЕТ ИГРОК 1 (${matchData.t1.name})` : `БЬЕТ ИГРОК 2 (${matchData.t2.name})`;
+                msg.style.color = "#00ffcc";
+            } else {
+                msg.innerText = matchData.turn === 1 ? "ВАШ УДАР!" : "СОПЕРНИК БЬЕТ...";
+                msg.style.color = matchData.turn === 1 ? "#00ffcc" : "#da3633";
+            }
+        }
+
+        // --- ИГРОВОЙ ДВИЖОК CANVAS ---
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        let animId;
+
+        // Физика
+        let ball = { x: 0, y: 0, z: 1.0, active: false, targetX: 0, targetY: 0 };
+        let goalie = { x: 0, y: 0, targetX: 0 };
+        let goalArea = { x: 0, y: 0, w: 260, h: 100 }; // Зона ворот
+        
+        let powerState = { active: false, value: 0, x: 0, y: 0 };
+        let uiCursor = document.getElementById('target-cursor');
+        let uiPowerCont = document.getElementById('power-container');
+        let uiPowerFill = document.getElementById('power-fill');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            goalArea.x = canvas.width / 2;
+            goalArea.y = canvas.height * 0.45;
+            resetPositions();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function resetPositions() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height * 0.85;
+            ball.z = 1.0;
+            ball.active = false;
+            goalie.x = goalArea.x;
+            goalie.y = goalArea.y + 30;
+            goalie.targetX = goalArea.x;
+            
+            uiCursor.style.display = 'none';
+            uiPowerCont.style.display = 'none';
+            powerState.active = false;
+        }
+
+        function startGame() {
+            switchScreen('screen-game');
+            document.getElementById('game-ui').style.display = 'block';
+            resizeCanvas();
+            updateUI();
+            loop();
+        }
+
+        // ВВОД
+        function handleInputStart(e) {
+            if (ball.active) return; // Мяч уже летит
+            if (currentMode !== 'pvp' && matchData.turn === 2) return; // Ход ИИ
+
+            let px = e.touches ? e.touches[0].clientX : e.clientX;
+            let py = e.touches ? e.touches[0].clientY : e.clientY;
+
+            // Разрешаем целиться только примерно в зону ворот (плюс-минус для ошибок)
+            if (py < goalArea.y + 80 && py > goalArea.y - 80) {
+                powerState.active = true;
+                powerState.value = 0;
+                powerState.x = px;
+                powerState.y = py;
+                
+                uiCursor.style.left = px + 'px';
+                uiCursor.style.top = py + 'px';
+                uiCursor.style.display = 'block';
+                uiPowerCont.style.display = 'block';
+            }
+        }
+
+        function handleInputEnd() {
+            if (powerState.active) {
+                powerState.active = false;
+                uiCursor.style.display = 'none';
+                uiPowerCont.style.display = 'none';
+                executeShot(powerState.value, powerState.x, powerState.y);
+            }
+        }
+
+        canvas.addEventListener('mousedown', handleInputStart);
+        window.addEventListener('mouseup', handleInputEnd);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInputStart(e); }, {passive:false});
+        window.addEventListener('touchend', handleInputEnd);
+
+        // ЦИКЛ
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Зарядка силы (от 0 до 5)
+            if (powerState.active) {
+                powerState.value += 0.08; // Скорость заполнения
+                if (powerState.value > 5) powerState.value = 5;
+                
+                let pct = (powerState.value / 5) * 100;
+                uiPowerFill.style.width = pct + '%';
+                
+                // Цвета индикатора
+                if (powerState.value < 4) uiPowerFill.style.background = '#ffeb3b'; // Желтый
+                else if (powerState.value <= 4.5) uiPowerFill.style.background = '#00ffcc'; // ИДЕАЛ (Зеленый/Неон)
+                else uiPowerFill.style.background = '#da3633'; // Перебор (Красный)
+            }
+
+            // Полет мяча
+            if (ball.active) {
+                ball.x += (ball.targetX - ball.x) * 0.1;
+                ball.y += (ball.targetY - ball.y) * 0.1;
+                ball.z -= 0.05; // Уменьшение (улетает вдаль)
+                if (ball.z < 0.4) ball.z = 0.4;
+                
+                // Вратарь прыгает
+                goalie.x += (goalie.targetX - goalie.x) * 0.15;
+            }
+
+            drawStadium();
+            drawGoal();
+            drawGoalie();
+            drawBall();
+
+            animId = requestAnimationFrame(loop);
+        }
+
+        function drawStadium() {
+            // Трава
+            ctx.fillStyle = "#1e3f20";
+            ctx.fillRect(0, canvas.height*0.5, canvas.width, canvas.height*0.5);
+            ctx.fillStyle = "#18331a";
+            ctx.beginPath(); ctx.moveTo(0, canvas.height*0.6); ctx.lineTo(canvas.width, canvas.height*0.6); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.fill();
+        }
+
+        function drawGoal() {
+            let cx = goalArea.x;
+            let cy = goalArea.y;
+            let gw = goalArea.w;
+            let gh = goalArea.h;
+
+            // Сетка (упрощенно)
+            ctx.fillStyle = "rgba(255,255,255,0.1)";
+            ctx.fillRect(cx - gw/2, cy - gh/2, gw, gh);
+
+            // Штанги
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(cx - gw/2 - 6, cy - gh/2, 6, gh + 40); // Левая
+            ctx.fillRect(cx + gw/2, cy - gh/2, 6, gh + 40); // Правая
+            ctx.fillRect(cx - gw/2 - 6, cy - gh/2 - 6, gw + 12, 6); // Перекладина
+        }
+
+        function drawGoalie() {
+            ctx.fillStyle = "#ffcc00"; // Желтая форма
+            ctx.fillRect(goalie.x - 15, goalie.y - 30, 30, 60);
+            ctx.fillStyle = "#ffdbac"; // Голова
+            ctx.beginPath(); ctx.arc(goalie.x, goalie.y - 40, 12, 0, Math.PI*2); ctx.fill();
+        }
+
+        function drawBall() {
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); 
+            ctx.arc(ball.x, ball.y, 25 * ball.z, 0, Math.PI*2); 
+            ctx.fill();
+            ctx.fillStyle = "#000"; // Простой узор
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, 10 * ball.z, 0, Math.PI*2); ctx.fill();
+        }
+
+        // --- ОБРАБОТКА УДАРА ---
+        function executeShot(power, tx, ty) {
+            ball.active = true;
+            
+            // Логика по ТЗ Misha
+            let isGoal = false;
+            let isMissOverbar = false;
+
+            if (power >= 4.0 && power <= 4.5) {
+                isGoal = true; // Идеальный удар!
+            } else if (power > 4.5) {
+                isMissOverbar = true; // Перебор силы
+            } else {
+                isGoal = false; // Слабый удар, вратарь тащит
+            }
+
+            // Направление удара
+            if (isMissOverbar) {
+                ball.targetX = tx;
+                ball.targetY = goalArea.y - 150; // Мяч летит выше ворот
+                goalie.targetX = goalArea.x; // Вратарь стоит на месте
+            } else {
+                ball.targetX = tx;
+                ball.targetY = ty;
+                
+                if (isGoal) {
+                    // Гол! Вратарь прыгает в другую сторону или не дотягивается
+                    goalie.targetX = tx > goalArea.x ? goalArea.x - 100 : goalArea.x + 100;
+                } else {
+                    // Сейв! Вратарь летит прямо к мячу
+                    goalie.targetX = tx;
+                }
+            }
+
+            // Ждем завершения анимации (1 секунда)
+            setTimeout(() => {
+                registerResult(isGoal);
+            }, 1000);
+        }
+
+        function registerResult(scored) {
+            let hist = matchData.turn === 1 ? matchData.t1History : matchData.t2History;
+            
+            if (scored) {
+                if (matchData.turn === 1) matchData.t1Score++; else matchData.t2Score++;
+                hist[matchData.currentRound] = 'hit';
+                try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
+            } else {
+                hist[matchData.currentRound] = 'miss';
+                try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
+            }
+
+            updateUI();
+
+            // Передача хода
+            if (matchData.turn === 1) {
+                matchData.turn = 2;
+                resetPositions();
+                updateUI();
+                
+                if (currentMode !== 'pvp') {
+                    // Ход ИИ (через 1.5 сек просто показываем результат)
+                    setTimeout(executeAITurn, 1500);
+                }
+            } else {
+                // Конец раунда
+                matchData.turn = 1;
+                matchData.currentRound++;
+                resetPositions();
+                
+                if (matchData.currentRound >= matchData.kicks) {
+                    checkMatchEnd(); // Проверка на ничью или финал
+                } else {
+                    updateUI();
+                }
+            }
+        }
+
+        function executeAITurn() {
+            // ИИ бьет. Имитация по ТЗ "Моменты ударов ИИ просто отмечать забил ИИ или нет"
+            // Шанс ИИ забить - 50%
+            let isGoal = Math.random() > 0.5;
+            registerResult(isGoal);
+        }
+
+        function checkMatchEnd() {
+            if (matchData.t1Score !== matchData.t2Score) {
+                finishMatch();
+            } else {
+                // Доп удары (до первого промаха)
+                matchData.kicks++;
+                matchData.t1History.push('empty');
+                matchData.t2History.push('empty');
+                updateUI();
+            }
+        }
+
+        function finishMatch() {
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('screen-result').classList.add('active-screen');
+            cancelAnimationFrame(animId);
+
+            let p1Won = matchData.t1Score > matchData.t2Score;
+            let title = document.getElementById('res-title');
+            let reward = document.getElementById('res-reward');
+            
+            document.getElementById('res-score').innerText = `${matchData.t1Score} : ${matchData.t2Score}`;
+
+            if (currentMode === 'pvp') {
+                title.innerText = p1Won ? "ПОБЕДА ИГРОКА 1" : "ПОБЕДА ИГРОКА 2";
+                title.style.color = "#00ffcc";
+                reward.innerText = "ДРУЖЕСКИЙ МАТЧ ЗАВЕРШЕН";
+            } else {
+                if (p1Won) {
+                    title.innerText = "ПОБЕДА!";
+                    title.style.color = "#00ffcc";
+                    let coins = currentMode === 'quick' ? matchData.kicks * 10 : 0; // В турнире награда в конце
+                    if(coins > 0) addCoins(coins);
+                    reward.innerText = coins > 0 ? `НАГРАДА: +${coins} SC 💎` : '';
+                } else {
+                    title.innerText = "ПОРАЖЕНИЕ";
+                    title.style.color = "#da3633";
+                    reward.innerText = "";
+                }
+            }
+        }
+
+        function handleResultNext() {
+            if (currentMode === 'tournament') {
+                if (matchData.t1Score > matchData.t2Score) {
+                    // Игрок победил, идем дальше
+                    tourneyData.round++;
+                    if (tourneyData.round > 2) {
+                        // ВЫИГРАЛ ТУРНИР!
+                        document.getElementById('res-title').innerText = "ЧЕМПИОН МУНДИАЛЯ!";
+                        document.getElementById('res-score').innerText = "🏆";
+                        addCoins(500);
+                        document.getElementById('res-reward').innerText = "ГЛАВНЫЙ ПРИЗ: +500 SC 💎";
+                        document.getElementById('btn-next-action').innerText = "ЗАВЕРШИТЬ ТУРНИР";
+                        currentMode = 'finished'; // Чтобы при след клике выйти
+                    } else {
+                        // Симулируем другие матчи и создаем некст брекет
+                        let newTeams = [];
+                        for(let i=0; i < tourneyData.teamsLeft.length; i+=2) {
+                            let tA = tourneyData.teamsLeft[i];
+                            let tB = tourneyData.teamsLeft[i+1];
+                            if (tA.id === tourneyData.playerTeam.id || tB.id === tourneyData.playerTeam.id) {
+                                newTeams.push(tourneyData.playerTeam); // Игрок прошел
+                            } else {
+                                newTeams.push(Math.random() > 0.5 ? tA : tB); // Рандом ИИ победитель
+                            }
+                        }
+                        tourneyData.teamsLeft = newTeams;
+                        buildBracket();
+                        switchScreen('screen-bracket');
+                    }
+                } else {
+                    // Игрок проиграл
+                    alert("Вы вылетаете из турнира!");
+                    switchScreen('screen-modes');
+                }
+            } else if (currentMode === 'finished') {
+                switchScreen('screen-modes');
+            } else {
+                switchScreen('screen-modes');
+            }
+        }
+
+        function addCoins(amount) {
+            let currentBalance = parseInt(localStorage.getItem('syndicate_coins')) || 0;
+            localStorage.setItem('syndicate_coins', currentBalance + amount);
+        }
+    </script>
+</body>
+</html>
