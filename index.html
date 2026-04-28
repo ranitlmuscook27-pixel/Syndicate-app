@@ -11,7 +11,7 @@
             color: #fff; overflow-x: hidden; user-select: none;
         }
 
-        /* ЭФФЕКТНОЕ ПРИВЕТСТВИЕ */
+        /* ЗАСТАВКА */
         #intro-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; display: flex; 
@@ -25,54 +25,47 @@
         }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-        /* ЭКРАН РЕГИСТРАЦИИ (Ввод Ника) */
+        /* ИДЕНТИФИКАЦИЯ */
         #auth-screen {
             display: none; flex-direction: column; align-items: center; justify-content: center;
             width: 100%; height: 100vh; position: absolute; top: 0; left: 0;
             background: radial-gradient(circle at center, #111118 0%, #050505 100%);
             z-index: 50; padding: 20px; box-sizing: border-box; text-align: center;
         }
-        #auth-screen h2 { color: #58a6ff; font-size: 24px; text-transform: uppercase; margin-bottom: 30px; letter-spacing: 2px;}
         .auth-input {
             background: #111; border: 2px solid #58a6ff; color: #58a6ff; font-size: 20px;
             padding: 15px; border-radius: 8px; width: 100%; max-width: 300px; text-align: center;
             outline: none; font-family: inherit; margin-bottom: 20px; font-weight: bold;
         }
-        .auth-input:focus { box-shadow: 0 0 15px rgba(88,166,255,0.5); }
         .auth-btn {
             background: #58a6ff; color: #000; border: none; padding: 15px 0; width: 100%; max-width: 300px;
-            font-family: inherit; font-weight: bold; font-size: 18px; border-radius: 10px; 
-            cursor: pointer; text-transform: uppercase; box-shadow: 0 0 15px rgba(88,166,255,0.4); transition: 0.2s;
+            font-family: inherit; font-weight: bold; font-size: 18px; border-radius: 10px; cursor: pointer; text-transform: uppercase;
         }
-        .auth-btn:active { transform: scale(0.95); }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ (Профиль и Баланс) */
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
         #top-panel {
             position: fixed; top: 15px; left: 15px; right: 15px; 
-            display: flex; justify-content: space-between; z-index: 100;
+            display: none; justify-content: space-between; z-index: 100;
         }
         .panel-badge {
-            background: rgba(20, 20, 25, 0.9); padding: 8px 15px; border-radius: 20px; 
-            display: flex; align-items: center; border: 1px solid #333;
+            background: rgba(20, 20, 25, 0.9); padding: 8px 15px; border-radius: 20px; border: 1px solid #333;
+            display: flex; align-items: center;
         }
-        #profile-badge { border-color: #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.3); }
-        #player-name-display { color: #58a6ff; font-size: 14px; font-weight: bold; margin-left: 8px; text-transform: uppercase; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-        
-        #wallet-badge { border-color: #ff9d00; box-shadow: 0 0 15px rgba(255, 157, 0, 0.3); }
+        #player-name-display { color: #58a6ff; font-size: 14px; font-weight: bold; margin-left: 8px; text-transform: uppercase; }
         #wallet-amount { color: #ff9d00; font-size: 16px; font-weight: bold; margin-left: 8px; }
 
-        /* ГЛАВНЫЙ КОНТЕЙНЕР */
+        /* КОНТЕЙНЕР */
         #hub {
             display: flex; flex-direction: column; align-items: center; 
             padding: 20px; box-sizing: border-box; min-height: 100vh;
             background: radial-gradient(circle at center, #111118 0%, #050505 100%);
         }
 
-        .header { text-align: center; margin-top: 60px; margin-bottom: 30px; width: 100%; max-width: 400px; }
-        .studio-title { color: #ff3e3e; font-size: 24px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 10px #ff3e3e; display: block; margin-top: 15px; }
+        .header { text-align: center; margin-top: 70px; margin-bottom: 30px; width: 100%; max-width: 400px; }
+        .studio-title { color: #ff3e3e; font-size: 24px; font-weight: bold; text-transform: uppercase; display: block; margin-top: 15px; text-shadow: 0 0 10px #ff3e3e;}
         .logo-main { width: 100%; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* КНОПКИ МЕНЮ */
+        /* МЕНЮ */
         .menu-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; }
         .btn-hub {
             background: linear-gradient(145deg, #161b22, #0d1117);
@@ -81,31 +74,26 @@
             cursor: pointer; text-transform: uppercase; transition: 0.3s;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .btn-hub:active { transform: scale(0.98); border-color: #ff3e3e; color: #ff3e3e; }
-        .btn-hub span { color: #ff3e3e; }
+        .btn-hub:active { border-color: #ff3e3e; color: #ff3e3e; }
 
         /* СЕКЦИИ */
-        .section { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; animation: slideUp 0.4s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
+        .section { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .section-header { font-size: 20px; color: #58a6ff; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 2px; }
 
-        /* КАРТОЧКИ ИГР (ВСЕ РАЗБЛОКИРОВАНЫ) */
+        /* КАРТОЧКИ ИГР (ВСЕ ТЕПЕРЬ READY) */
         .game-item {
             background: #0d1117; border: 1px solid #30363d; padding: 15px; border-radius: 12px;
             margin-bottom: 12px; width: 100%; box-sizing: border-box; cursor: pointer;
-            transition: 0.2s;
+            border-left: 4px solid #238636; transition: 0.2s;
         }
-        .game-item.ready { border-left: 4px solid #238636; }
-        .game-item.ready:active { background: #161b22; transform: scale(0.98); }
+        .game-item:active { background: #161b22; transform: scale(0.98); }
         
-        .game-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;}
+        .game-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between;}
         .game-info { font-size: 13px; color: #8b949e; line-height: 1.4; }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-left: auto;}
-        .badge-ready { background: #238636; color: #fff; }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; background: #238636; color: #fff; font-weight: bold; }
 
-        .btn-back { background: transparent; color: #8b949e; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-family: inherit; transition: 0.2s;}
-        .btn-back:active { background: #30363d; color: #fff; }
+        .btn-back { background: transparent; color: #8b949e; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -114,21 +102,15 @@
         <h2 id="intro-text">Добро пожаловать в наши фантастические миры, в которых вы останетесь</h2>
     </div>
 
-    <div id="top-panel" style="display: none;">
-        <div class="panel-badge" id="profile-badge">
-            <span>👤</span>
-            <span id="player-name-display">АГЕНТ</span>
-        </div>
-        <div class="panel-badge" id="wallet-badge">
-            <span>💎</span>
-            <span id="wallet-amount">0 SC</span>
-        </div>
+    <div id="top-panel">
+        <div class="panel-badge" style="border-color: #58a6ff;">👤 <span id="player-name-display">АГЕНТ</span></div>
+        <div class="panel-badge" style="border-color: #ff9d00;">💎 <span id="wallet-amount">0 SC</span></div>
     </div>
 
     <div id="auth-screen">
-        <h2>ИДЕНТИФИКАЦИЯ АГЕНТА</h2>
-        <input type="text" id="nickname-input" class="auth-input" placeholder="Введите позывной" maxlength="12">
-        <button class="auth-btn" onclick="saveNickname()">СОХРАНИТЬ ДАННЫЕ</button>
+        <h2 style="color:#58a6ff">ИДЕНТИФИКАЦИЯ АГЕНТА</h2>
+        <input type="text" id="nickname-input" class="auth-input" placeholder="ВВЕДИТЕ ПОЗЫВНОЙ" maxlength="12">
+        <button class="auth-btn" onclick="saveNickname()">ПРИНЯТЬ</button>
     </div>
 
     <div id="hub">
@@ -137,7 +119,6 @@
                 <img src="https://sun9-15.userapi.com/s/v1/ig2/eHggZ9epV8ccWnSypRmknQeDpu2aeWNCtCaZ7P7tTkqCZkBUUeMU29PNnTRwhKhjGNtTGZUPuzjQsTTRMFzQBT9t.jpg?quality=95&as=32x17,48x26,72x39,108x59,160x87,240x131,360x196,480x262,540x295,640x349,720x393,1080x589,1280x698,1408x768&from=bu&u=-FktBFhyP8WevcaD9T1dDnlTXlGIW6bxMKPvGPC7OPw&cs=1408x0" alt="Logo" class="logo-main">
                 <span class="studio-title">Syndicate Games Studio</span>
             </div>
-
             <div class="menu-list">
                 <button class="btn-hub" onclick="openSection('sec-games')">Наши мини-игры <span>➜</span></button>
                 <button class="btn-hub" onclick="openSection('sec-exchange')">Биржа Синдиката <span>➜</span></button>
@@ -149,93 +130,78 @@
         <div id="sec-games" class="section">
             <div class="section-header">Игровой зал</div>
             
-            <div class="game-item ready" onclick="window.location.href='red_protocol.html'">
-                <div class="game-name">Красный протокол 2 <span class="badge badge-ready">Ready</span></div>
+            <div class="game-item" onclick="window.location.href='red_protocol.html'">
+                <div class="game-name">Красный протокол 2 <span class="badge">Ready</span></div>
                 <div class="game-info">Тактический взлом систем. Найди шифр и открой сейф.</div>
             </div>
 
-            <div class="game-item ready" onclick="window.location.href='dakar.html'">
-                <div class="game-name">🚚 Дакар 28 <span class="badge badge-ready">Ready</span></div>
+            <div class="game-item" onclick="window.location.href='dakar.html'">
+                <div class="game-name">🚚 Дакар 28 <span class="badge">Ready</span></div>
                 <div class="game-info">Гонки на Камазах через пустыню. Две педали — один победитель.</div>
             </div>
 
-            <div class="game-item ready" onclick="window.location.href='hoops.html'">
-                <div class="game-name">🏀 Syndicate Hoops 28 <span class="badge badge-ready">Ready</span></div>
+            <div class="game-item" onclick="window.location.href='hoops.html'">
+                <div class="game-name">🏀 Syndicate Hoops 28 <span class="badge">Ready</span></div>
                 <div class="game-info">Баскетбольный турнир. Выбери команду и забрось мяч в кольцо.</div>
             </div>
 
-            <div class="game-item ready" onclick="window.location.href='mundial.html'">
-                <div class="game-name">⚽️ Мундиаль 26 <span class="badge badge-ready">Ready</span></div>
-                <div class="game-info">Серия пенальти. Турниры и быстрые матчи. Приведи команду к кубку.</div>
+            <div class="game-item" onclick="window.location.href='mundial.html'">
+                <div class="game-name">⚽️ Мундиаль 26 <span class="badge">Ready</span></div>
+                <div class="game-info">Серия пенальти. Приведи свою сборную к мировому кубку.</div>
             </div>
 
             <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
         </div>
 
         <div id="sec-exchange" class="section">
-            <div class="section-header">Биржа Синдиката</div>
-            <div style="background: #111; padding: 20px; border-radius: 12px; text-align: center; width: 100%; border: 1px solid #30363d;">
+            <div class="section-header">Биржа</div>
+            <div style="background: #111; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #30363d; width: 100%; box-sizing: border-box;">
                 <p style="color: #ff9d00; font-size: 20px; margin: 0;">Ваш баланс: <span id="exchange-balance">0</span> SC</p>
-                <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-                <p style="color: #8b949e; font-size: 14px;">Система активов находится в стадии настройки. Зарабатывайте SC в играх, чтобы подготовиться к торгам.</p>
+                <p style="color: #8b949e; font-size: 14px; margin-top: 15px;">Торги временно приостановлены. Копите активы в играх!</p>
             </div>
             <button class="btn-back" onclick="goBack()">В ГЛАВНОЕ МЕНЮ</button>
         </div>
-
-        <div id="sec-roadmap" class="section"><div class="section-header">Roadmap</div><p style="color:#8b949e">Планы по захвату игровой индустрии скоро появятся.</p><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
-        <div id="sec-preorder" class="section"><div class="section-header">Предзаказ</div><p style="color:#8b949e">Станьте обладателем эксклюзивного контента первым.</p><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
+        
+        <div id="sec-roadmap" class="section"><div class="section-header">Roadmap</div><p style="color:#555">Plans loading...</p><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
+        <div id="sec-preorder" class="section"><div class="section-header">Предзаказ</div><p style="color:#555">Coming soon...</p><button class="btn-back" onclick="goBack()">НАЗАД</button></div>
     </div>
 
     <script>
-        // ЗАПУСК ПРИ ЗАГРУЗКЕ
         window.onload = function() {
             syncWallet();
-            
-            // Показ заставки на 1.5 секунды
+            // Показ заставки на 2.5 секунды
             setTimeout(() => {
                 const intro = document.getElementById('intro-overlay');
                 intro.style.opacity = '0';
-                
                 setTimeout(() => {
                     intro.style.display = 'none';
-                    checkPlayerIdentity(); // Проверяем имя после заставки
-                }, 1000);
-            }, 1500);
+                    checkPlayerIdentity();
+                }, 1500);
+            }, 2500);
         };
 
-        // ПРОВЕРКА ИМЕНИ ИГРОКА
         function checkPlayerIdentity() {
             const savedName = localStorage.getItem('syndicate_nickname');
             if (savedName) {
-                // Если имя уже есть, показываем меню и панель
                 document.getElementById('player-name-display').innerText = savedName;
                 document.getElementById('top-panel').style.display = 'flex';
                 document.getElementById('menu-main').style.display = 'block';
             } else {
-                // Если имени нет, показываем экран регистрации
                 document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('top-panel').style.display = 'none';
             }
         }
 
-        // СОХРАНЕНИЕ ИМЕНИ
         function saveNickname() {
-            const inputField = document.getElementById('nickname-input');
-            const newName = inputField.value.trim().toUpperCase();
-            
-            if (newName.length > 0) {
-                localStorage.setItem('syndicate_nickname', newName);
-                document.getElementById('player-name-display').innerText = newName;
-                
-                // Прячем регистрацию, показываем интерфейс
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('top-panel').style.display = 'flex';
-                document.getElementById('menu-main').style.display = 'block';
+            const val = document.getElementById('nickname-input').value.trim().toUpperCase();
+            if (val) {
+                localStorage.setItem('syndicate_nickname', val);
+                checkPlayerIdentity();
             } else {
-                alert("Агент, необходимо ввести позывной!");
+                alert("Агент, введите позывной!");
             }
         }
 
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ БАЛАНСА
         function syncWallet() {
             const coins = localStorage.getItem('syndicate_coins') || 0;
             document.getElementById('wallet-amount').innerText = coins + ' SC';
@@ -244,12 +210,11 @@
             }
         }
 
-        // НАВИГАЦИЯ ПО МЕНЮ
         function openSection(id) {
             document.getElementById('menu-main').style.display = 'none';
             document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'flex';
-            syncWallet(); // Обновляем кошелек при каждом заходе в раздел
+            syncWallet();
         }
 
         function goBack() {
@@ -258,11 +223,7 @@
             syncWallet();
         }
 
-        // Telegram WebApp API
-        try {
-            const tg = window.Telegram.WebApp;
-            tg.ready();
-        } catch(e) {}
+        try { window.Telegram.WebApp.ready(); } catch(e) {}
     </script>
 </body>
 </html>
