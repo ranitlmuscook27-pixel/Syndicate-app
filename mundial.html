@@ -17,7 +17,7 @@
 
         .game-poster { width: 100%; max-width: 320px; border-radius: 12px; border: 2px solid #00ffcc; box-shadow: 0 0 25px rgba(0,255,204,0.3); margin-bottom: 30px; object-fit: cover; }
 
-        /* КНОПКИ ФИФА СТАЙЛ */
+        /* КНОПКИ */
         .btn-panel { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin-bottom: 20px; }
         button { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid #333; padding: 18px; width: 100%; font-family: inherit; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; text-transform: uppercase; transition: 0.2s; backdrop-filter: blur(5px); }
         button:active { transform: scale(0.97); }
@@ -36,8 +36,12 @@
         .matchup.player-match { border: 1px solid #00ffcc; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
 
         /* ИГРОВОЙ UI */
-        #game-ui { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        #scoreboard { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00ffcc; border-radius: 8px; padding: 10px 15px; display: flex; flex-direction: column; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        
+        #btn-quit-match { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); color: #aaa; border: 1px solid #555; padding: 8px 12px; border-radius: 6px; font-size: 12px; pointer-events: auto; cursor: pointer; text-transform: uppercase; font-weight: bold; z-index: 20;}
+        #btn-quit-match:active { background: #da3633; color: white; border-color: #da3633;}
+
+        #scoreboard { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); border: 2px solid #00ffcc; border-radius: 8px; padding: 10px 15px; display: flex; flex-direction: column; width: 75%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); pointer-events: auto; }
         .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .team-name { font-size: 14px; font-weight: bold; width: 35%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .team-score { font-size: 22px; font-weight: bold; color: #00ffcc; width: 10%; text-align: center; }
@@ -46,7 +50,7 @@
         .dot.hit { background: #00ffcc; border-color: #00ffcc; box-shadow: 0 0 5px #00ffcc; }
         .dot.miss { background: #da3633; border-color: #da3633; box-shadow: 0 0 5px #da3633; }
 
-        #turn-msg { position: absolute; top: 95px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; text-shadow: 0 2px 4px #000; transition: 0.3s; }
+        #turn-msg { position: absolute; top: 95px; width: 100%; text-align: center; font-size: 22px; font-weight: bold; text-shadow: 0 2px 5px #000; transition: 0.3s; }
 
         /* ИНДИКАТОР СИЛЫ (POWER BAR) */
         #power-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 300px; height: 25px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 15px; overflow: hidden; display: none; }
@@ -61,7 +65,7 @@
     </style>
 </head>
 <body>
-    <div class="version">Mundial v1.1</div>
+    <div class="version">Mundial v2.1 (Penalty Fix)</div>
 
     <div id="screen-intro" class="screen active-screen">
         <h1>⚽ Мундиаль 26</h1>
@@ -125,12 +129,15 @@
         <p id="res-reward" style="font-size: 20px; color: #00ffcc; font-weight: bold; margin-bottom: 30px;"></p>
         <div class="btn-panel">
             <button class="btn-primary" id="btn-next-action" onclick="handleResultNext()">ПРОДОЛЖИТЬ</button>
+            <button class="btn-danger" onclick="switchScreen('screen-modes')">В МЕНЮ ИГРЫ</button>
         </div>
     </div>
 
-    <div id="screen-game" class="screen" style="padding:0;">
+    <div id="screen-game" class="screen" style="padding:0; background: none;">
         <canvas id="gameCanvas"></canvas>
         <div id="game-ui">
+            <button id="btn-quit-match" onclick="quitMatchEarly()">Выход</button>
+            
             <div id="scoreboard">
                 <div class="score-row">
                     <div class="team-name" id="sb-t1-name">КОМАНДА 1</div>
@@ -170,20 +177,18 @@
             { id: 8, name: "СТРЕЛА", emoji: "🏹" }
         ];
 
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         let currentMode = '';
-        let matchData = { t1: null, t2: null, kicks: 5, t1Score: 0, t2Score: 0, t1History: [], t2History: [], currentRound: 0, turn: 1 };
+        let matchData = { t1: null, t2: null, kicks: 5, t1Score: 0, t2Score: 0, t1History: [], t2History: [], currentRound: 0, turn: 1, isEnded: false };
         let tourneyData = { active: false, round: 0, playerTeam: null, teamsLeft: [] };
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
             document.getElementById(id).classList.add('active-screen');
             if (id !== 'screen-game') {
-                document.getElementById('game-ui').style.display = 'none';
+                cancelAnimationFrame(animId);
             }
         }
 
-        // ЗАПОЛНЕНИЕ СЕЛЕКТОВ
         function populateSelect(id) {
             const sel = document.getElementById(id);
             sel.innerHTML = '';
@@ -195,12 +200,11 @@
             });
         }
 
-        // ВЫБОР РЕЖИМА И НАСТРОЙКА
         function selectMode(mode) {
             currentMode = mode;
             populateSelect('sel-team1');
             populateSelect('sel-team2');
-            document.getElementById('sel-team2').value = 2; // Default AI
+            document.getElementById('sel-team2').value = 2;
             
             if (mode === 'quick') {
                 document.getElementById('setup-title').innerText = "БЫСТРЫЙ МАТЧ";
@@ -218,7 +222,7 @@
                 document.getElementById('setup-title').innerText = "НАСТРОЙКА ТУРНИРА";
                 document.getElementById('lbl-team1').innerText = "Выберите свой клуб";
                 document.getElementById('grp-team2').style.display = 'none';
-                document.getElementById('grp-kicks').style.display = 'block'; // Пусть будет настройка длины
+                document.getElementById('grp-kicks').style.display = 'block';
             }
             switchScreen('screen-setup');
         }
@@ -229,12 +233,11 @@
             
             if (currentMode === 'tournament') {
                 tourneyData.active = true;
-                tourneyData.round = 0; // 0: 1/4, 1: 1/2, 2: Final
+                tourneyData.round = 0;
                 tourneyData.playerTeam = teamsDB.find(t => t.id === t1Id);
                 
-                // Перемешиваем остальные 7 команд
                 let others = teamsDB.filter(t => t.id !== t1Id).sort(() => 0.5 - Math.random());
-                tourneyData.teamsLeft = [tourneyData.playerTeam, ...others]; // Игрок всегда индекс 0
+                tourneyData.teamsLeft = [tourneyData.playerTeam, ...others]; 
                 
                 matchData.kicks = kicks;
                 buildBracket();
@@ -249,11 +252,9 @@
             }
         }
 
-        // --- ЛОГИКА ТУРНИРА ---
         function buildBracket() {
             const titles = ["1/4 ФИНАЛА", "ПОЛУФИНАЛ", "ФИНАЛ"];
             document.getElementById('bracket-title').innerText = titles[tourneyData.round];
-            
             const cont = document.getElementById('bracket-container');
             cont.innerHTML = '';
             
@@ -272,12 +273,10 @@
         }
 
         function startTournamentMatch() {
-            // Игрок всегда играет матч tourneyData.teamsLeft[0] vs [1]
             setupMatch(tourneyData.teamsLeft[0], tourneyData.teamsLeft[1], matchData.kicks);
             startGame();
         }
 
-        // --- ЛОГИКА МАТЧА ---
         function setupMatch(team1, team2, kicks) {
             matchData.t1 = team1;
             matchData.t2 = team2;
@@ -287,7 +286,8 @@
             matchData.t1History = Array(kicks).fill('empty');
             matchData.t2History = Array(kicks).fill('empty');
             matchData.currentRound = 0;
-            matchData.turn = 1; // 1 = T1, 2 = T2
+            matchData.turn = 1; 
+            matchData.isEnded = false;
         }
 
         function updateUI() {
@@ -315,10 +315,10 @@
         const ctx = canvas.getContext("2d");
         let animId;
 
-        // Физика
-        let ball = { x: 0, y: 0, z: 1.0, active: false, targetX: 0, targetY: 0 };
-        let goalie = { x: 0, y: 0, targetX: 0 };
-        let goalArea = { x: 0, y: 0, w: 260, h: 100 }; // Зона ворот
+        let ball = { x: 0, y: 0, z: 1.0, active: false, targetX: 0, targetY: 0, rotation: 0 };
+        let goalie = { x: 0, y: 0, targetX: 0, diveExt: 0 };
+        let goalArea = { x: 0, y: 0, w: 320, h: 140 }; 
+        let fans = [];
         
         let powerState = { active: false, value: 0, x: 0, y: 0 };
         let uiCursor = document.getElementById('target-cursor');
@@ -329,19 +329,35 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             goalArea.x = canvas.width / 2;
-            goalArea.y = canvas.height * 0.45;
+            goalArea.y = canvas.height * 0.35; // Сместили линию ворот чуть выше
+            
+            fans = [];
+            for (let i = 0; i < 150; i++) {
+                fans.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (goalArea.y - 50),
+                    color: Math.random() > 0.5 ? "#da3633" : (Math.random() > 0.5 ? "#00ffcc" : "#555"),
+                    size: 1 + Math.random() * 2,
+                    flashTimer: Math.floor(Math.random() * 200)
+                });
+            }
             resetPositions();
         }
         window.addEventListener('resize', resizeCanvas);
 
         function resetPositions() {
             ball.x = canvas.width / 2;
-            ball.y = canvas.height * 0.85;
+            // Мяч лежит строго на точке пенальти
+            let pitchH = canvas.height - goalArea.y;
+            ball.y = goalArea.y + pitchH * 0.45; // Дистанция до ворот
             ball.z = 1.0;
             ball.active = false;
+            ball.rotation = 0;
+            
             goalie.x = goalArea.x;
-            goalie.y = goalArea.y + 30;
+            goalie.y = goalArea.y; 
             goalie.targetX = goalArea.x;
+            goalie.diveExt = 0;
             
             uiCursor.style.display = 'none';
             uiPowerCont.style.display = 'none';
@@ -349,27 +365,27 @@
         }
 
         function startGame() {
-            // Исправлено здесь: теперь показываем экран с канвасом и UI
             switchScreen('screen-game');
-            document.getElementById('game-ui').style.display = 'block';
             resizeCanvas();
             updateUI();
-            
-            // Если анимация уже была запущена, отменяем её, чтобы не было дублей
             if (animId) cancelAnimationFrame(animId);
             loop();
         }
 
-        // ВВОД
+        function quitMatchEarly() {
+            matchData.isEnded = true;
+            switchScreen('screen-modes');
+        }
+
         function handleInputStart(e) {
-            if (ball.active) return; // Мяч уже летит
-            if (currentMode !== 'pvp' && matchData.turn === 2) return; // Ход ИИ
+            if (ball.active || matchData.isEnded) return; 
+            if (currentMode !== 'pvp' && matchData.turn === 2) return; 
 
             let px = e.touches ? e.touches[0].clientX : e.clientX;
             let py = e.touches ? e.touches[0].clientY : e.clientY;
 
-            // Разрешаем целиться только примерно в зону ворот (плюс-минус для ошибок)
-            if (py < goalArea.y + 80 && py > goalArea.y - 80) {
+            // Зона нажатия
+            if (py < goalArea.y + 100 && py > goalArea.y - 120) {
                 powerState.active = true;
                 powerState.value = 0;
                 powerState.x = px;
@@ -393,36 +409,35 @@
 
         canvas.addEventListener('mousedown', handleInputStart);
         window.addEventListener('mouseup', handleInputEnd);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInputStart(e); }, {passive:false});
+        canvas.addEventListener('touchstart', (e) => { if(e.target === canvas) e.preventDefault(); handleInputStart(e); }, {passive:false});
         window.addEventListener('touchend', handleInputEnd);
 
-        // ЦИКЛ
         function loop() {
+            if (matchData.isEnded) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Зарядка силы (от 0 до 5)
             if (powerState.active) {
-                powerState.value += 0.08; // Скорость заполнения
+                powerState.value += 0.08; 
                 if (powerState.value > 5) powerState.value = 5;
                 
                 let pct = (powerState.value / 5) * 100;
                 uiPowerFill.style.width = pct + '%';
                 
-                // Цвета индикатора
-                if (powerState.value < 4) uiPowerFill.style.background = '#ffeb3b'; // Желтый
-                else if (powerState.value <= 4.5) uiPowerFill.style.background = '#00ffcc'; // ИДЕАЛ (Зеленый/Неон)
-                else uiPowerFill.style.background = '#da3633'; // Перебор (Красный)
+                if (powerState.value < 4) uiPowerFill.style.background = '#ffeb3b'; 
+                else if (powerState.value <= 4.5) uiPowerFill.style.background = '#00ffcc'; 
+                else uiPowerFill.style.background = '#da3633'; 
             }
 
-            // Полет мяча
             if (ball.active) {
                 ball.x += (ball.targetX - ball.x) * 0.1;
                 ball.y += (ball.targetY - ball.y) * 0.1;
-                ball.z -= 0.05; // Уменьшение (улетает вдаль)
+                ball.z -= 0.04; 
+                ball.rotation += 0.2;
                 if (ball.z < 0.4) ball.z = 0.4;
                 
-                // Вратарь прыгает
-                goalie.x += (goalie.targetX - goalie.x) * 0.15;
+                goalie.x += (goalie.targetX - goalie.x) * 0.12;
+                goalie.diveExt = (goalie.targetX - goalArea.x);
             }
 
             drawStadium();
@@ -434,11 +449,49 @@
         }
 
         function drawStadium() {
-            // Трава
-            ctx.fillStyle = "#1e3f20";
-            ctx.fillRect(0, canvas.height*0.5, canvas.width, canvas.height*0.5);
-            ctx.fillStyle = "#18331a";
-            ctx.beginPath(); ctx.moveTo(0, canvas.height*0.6); ctx.lineTo(canvas.width, canvas.height*0.6); ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.fill();
+            ctx.fillStyle = "#050508";
+            ctx.fillRect(0, 0, canvas.width, goalArea.y);
+            
+            for(let i=0; i<fans.length; i++) {
+                let f = fans[i];
+                ctx.fillStyle = f.color;
+                f.flashTimer--;
+                if(f.flashTimer <= 0) {
+                    ctx.fillStyle = "#fff";
+                    ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+                    f.flashTimer = Math.floor(50 + Math.random() * 150);
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                ctx.beginPath(); ctx.arc(f.x, f.y, f.size, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+
+            let pitchH = canvas.height - goalArea.y;
+            for(let i=0; i<6; i++) {
+                ctx.fillStyle = i%2===0 ? "#255a28" : "#1e4a20";
+                ctx.fillRect(0, goalArea.y + i*(pitchH/6), canvas.width, pitchH/6);
+            }
+
+            // ШТРАФНАЯ (ИСПРАВЛЕНО ДЛЯ ПЕНАЛЬТИ)
+            ctx.strokeStyle = "rgba(255,255,255,0.7)";
+            ctx.lineWidth = 3;
+            
+            // Линия ворот
+            ctx.beginPath(); ctx.moveTo(0, goalArea.y); ctx.lineTo(canvas.width, goalArea.y); ctx.stroke();
+            
+            // Вратарская (маленькая)
+            ctx.strokeRect(canvas.width/2 - 90, goalArea.y, 180, pitchH * 0.20);
+            
+            // Большая штрафная (теперь она выходит ЗА точку пенальти)
+            ctx.strokeRect(canvas.width/2 - 220, goalArea.y, 440, pitchH * 0.75);
+            
+            // Дуга штрафной (Рисуется снизу штрафной)
+            ctx.beginPath(); ctx.arc(canvas.width/2, goalArea.y + pitchH * 0.75, 80, 0, Math.PI); ctx.stroke();
+
+            // ТОЧКА ПЕНАЛЬТИ (11 метров) - Точно под мячом
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); ctx.arc(canvas.width/2, goalArea.y + pitchH * 0.45, 6, 0, Math.PI*2); ctx.fill();
         }
 
         function drawGoal() {
@@ -447,105 +500,142 @@
             let gw = goalArea.w;
             let gh = goalArea.h;
 
-            // Сетка (упрощенно)
-            ctx.fillStyle = "rgba(255,255,255,0.1)";
-            ctx.fillRect(cx - gw/2, cy - gh/2, gw, gh);
+            ctx.strokeStyle = "rgba(255,255,255,0.2)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i = -gw/2; i <= gw/2; i+=15) {
+                ctx.moveTo(cx + i, cy - gh); ctx.lineTo(cx + i + 20, cy);
+                ctx.moveTo(cx + i, cy - gh); ctx.lineTo(cx + i - 20, cy);
+            }
+            ctx.stroke();
 
-            // Штанги
             ctx.fillStyle = "#fff";
-            ctx.fillRect(cx - gw/2 - 6, cy - gh/2, 6, gh + 40); // Левая
-            ctx.fillRect(cx + gw/2, cy - gh/2, 6, gh + 40); // Правая
-            ctx.fillRect(cx - gw/2 - 6, cy - gh/2 - 6, gw + 12, 6); // Перекладина
+            ctx.fillRect(cx - gw/2 - 6, cy - gh, 6, gh); 
+            ctx.fillRect(cx + gw/2, cy - gh, 6, gh); 
+            ctx.fillRect(cx - gw/2 - 6, cy - gh - 6, gw + 12, 6); 
         }
 
         function drawGoalie() {
-            ctx.fillStyle = "#ffcc00"; // Желтая форма
-            ctx.fillRect(goalie.x - 15, goalie.y - 30, 30, 60);
-            ctx.fillStyle = "#ffdbac"; // Голова
-            ctx.beginPath(); ctx.arc(goalie.x, goalie.y - 40, 12, 0, Math.PI*2); ctx.fill();
+            let gx = goalie.x;
+            let gy = goalie.y - 25; 
+            
+            ctx.fillStyle = "#ffcc00"; 
+            ctx.fillRect(gx - 12, gy - 20, 24, 40);
+            
+            ctx.fillStyle = "#111";
+            ctx.fillRect(gx - 10, gy + 20, 8, 20); 
+            ctx.fillRect(gx + 2, gy + 20, 8, 20); 
+
+            ctx.fillStyle = "#ffdbac";
+            ctx.beginPath(); ctx.arc(gx, gy - 28, 10, 0, Math.PI*2); ctx.fill();
+
+            ctx.strokeStyle = "#ffcc00";
+            ctx.lineWidth = 8;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            
+            if (goalie.diveExt < -20) { 
+                ctx.moveTo(gx - 10, gy - 10); ctx.lineTo(gx - 40, gy - 20); 
+                ctx.moveTo(gx + 10, gy - 10); ctx.lineTo(gx + 20, gy + 10); 
+            } else if (goalie.diveExt > 20) { 
+                ctx.moveTo(gx + 10, gy - 10); ctx.lineTo(gx + 40, gy - 20); 
+                ctx.moveTo(gx - 10, gy - 10); ctx.lineTo(gx - 20, gy + 10); 
+            } else { 
+                ctx.moveTo(gx - 12, gy - 10); ctx.lineTo(gx - 20, gy + 15);
+                ctx.moveTo(gx + 12, gy - 10); ctx.lineTo(gx + 20, gy + 15);
+            }
+            ctx.stroke();
         }
 
         function drawBall() {
+            let rad = 25 * ball.z;
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.rotation);
+
             ctx.fillStyle = "#fff";
-            ctx.beginPath(); 
-            ctx.arc(ball.x, ball.y, 25 * ball.z, 0, Math.PI*2); 
+            ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = "#222";
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(Math.cos(i * 2 * Math.PI / 5 - Math.PI / 2) * rad * 0.4, 
+                           Math.sin(i * 2 * Math.PI / 5 - Math.PI / 2) * rad * 0.4);
+            }
             ctx.fill();
-            ctx.fillStyle = "#000"; // Простой узор
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, 10 * ball.z, 0, Math.PI*2); ctx.fill();
+
+            ctx.strokeStyle = "#222"; ctx.lineWidth = 2 * ball.z;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(i * 2 * Math.PI / 5 - Math.PI / 2) * rad * 0.4, 
+                           Math.sin(i * 2 * Math.PI / 5 - Math.PI / 2) * rad * 0.4);
+                ctx.lineTo(Math.cos(i * 2 * Math.PI / 5 - Math.PI / 2) * rad, 
+                           Math.sin(i * 2 * Math.PI / 5 - Math.PI / 2) * rad);
+                ctx.stroke();
+            }
+
+            ctx.restore();
         }
 
-        // --- ОБРАБОТКА УДАРА ---
         function executeShot(power, tx, ty) {
             ball.active = true;
             
-            // Логика по ТЗ Misha
             let isGoal = false;
             let isMissOverbar = false;
 
-            if (power >= 4.0 && power <= 4.5) {
-                isGoal = true; // Идеальный удар!
-            } else if (power > 4.5) {
-                isMissOverbar = true; // Перебор силы
-            } else {
-                isGoal = false; // Слабый удар, вратарь тащит
-            }
+            if (power >= 4.0 && power <= 4.5) isGoal = true;
+            else if (power > 4.5) isMissOverbar = true; 
+            else isGoal = false;
 
-            // Направление удара
             if (isMissOverbar) {
                 ball.targetX = tx;
-                ball.targetY = goalArea.y - 150; // Мяч летит выше ворот
-                goalie.targetX = goalArea.x; // Вратарь стоит на месте
+                ball.targetY = goalArea.y - 180; 
+                goalie.targetX = goalArea.x; 
             } else {
                 ball.targetX = tx;
                 ball.targetY = ty;
                 
                 if (isGoal) {
-                    // Гол! Вратарь прыгает в другую сторону или не дотягивается
-                    goalie.targetX = tx > goalArea.x ? goalArea.x - 100 : goalArea.x + 100;
+                    goalie.targetX = tx > goalArea.x ? goalArea.x - 120 : goalArea.x + 120;
                 } else {
-                    // Сейв! Вратарь летит прямо к мячу
                     goalie.targetX = tx;
                 }
             }
 
-            // Ждем завершения анимации (1 секунда)
             setTimeout(() => {
                 registerResult(isGoal);
             }, 1000);
         }
 
         function registerResult(scored) {
+            if (matchData.isEnded) return;
+
             let hist = matchData.turn === 1 ? matchData.t1History : matchData.t2History;
             
             if (scored) {
                 if (matchData.turn === 1) matchData.t1Score++; else matchData.t2Score++;
                 hist[matchData.currentRound] = 'hit';
-                try { tg.HapticFeedback.notificationOccurred('success'); } catch(e){}
             } else {
                 hist[matchData.currentRound] = 'miss';
-                try { tg.HapticFeedback.notificationOccurred('error'); } catch(e){}
             }
 
             updateUI();
 
-            // Передача хода
             if (matchData.turn === 1) {
                 matchData.turn = 2;
                 resetPositions();
                 updateUI();
                 
                 if (currentMode !== 'pvp') {
-                    // Ход ИИ (через 1.5 сек просто показываем результат)
                     setTimeout(executeAITurn, 1500);
                 }
             } else {
-                // Конец раунда
                 matchData.turn = 1;
                 matchData.currentRound++;
                 resetPositions();
                 
                 if (matchData.currentRound >= matchData.kicks) {
-                    checkMatchEnd(); // Проверка на ничью или финал
+                    checkMatchEnd(); 
                 } else {
                     updateUI();
                 }
@@ -553,8 +643,7 @@
         }
 
         function executeAITurn() {
-            // ИИ бьет. Имитация по ТЗ "Моменты ударов ИИ просто отмечать забил ИИ или нет"
-            // Шанс ИИ забить - 50%
+            if (matchData.isEnded) return;
             let isGoal = Math.random() > 0.5;
             registerResult(isGoal);
         }
@@ -563,7 +652,6 @@
             if (matchData.t1Score !== matchData.t2Score) {
                 finishMatch();
             } else {
-                // Доп удары (до первого промаха)
                 matchData.kicks++;
                 matchData.t1History.push('empty');
                 matchData.t2History.push('empty');
@@ -572,9 +660,9 @@
         }
 
         function finishMatch() {
-            document.getElementById('game-ui').style.display = 'none';
-            document.getElementById('screen-result').classList.add('active-screen');
-            cancelAnimationFrame(animId);
+            matchData.isEnded = true;
+            
+            switchScreen('screen-result');
 
             let p1Won = matchData.t1Score > matchData.t2Score;
             let title = document.getElementById('res-title');
@@ -590,7 +678,7 @@
                 if (p1Won) {
                     title.innerText = "ПОБЕДА!";
                     title.style.color = "#00ffcc";
-                    let coins = currentMode === 'quick' ? matchData.kicks * 10 : 0; // В турнире награда в конце
+                    let coins = currentMode === 'quick' ? matchData.kicks * 10 : 0; 
                     if(coins > 0) addCoins(coins);
                     reward.innerText = coins > 0 ? `НАГРАДА: +${coins} SC 💎` : '';
                 } else {
@@ -604,26 +692,23 @@
         function handleResultNext() {
             if (currentMode === 'tournament') {
                 if (matchData.t1Score > matchData.t2Score) {
-                    // Игрок победил, идем дальше
                     tourneyData.round++;
                     if (tourneyData.round > 2) {
-                        // ВЫИГРАЛ ТУРНИР!
                         document.getElementById('res-title').innerText = "ЧЕМПИОН МУНДИАЛЯ!";
                         document.getElementById('res-score').innerText = "🏆";
                         addCoins(500);
                         document.getElementById('res-reward').innerText = "ГЛАВНЫЙ ПРИЗ: +500 SC 💎";
                         document.getElementById('btn-next-action').innerText = "ЗАВЕРШИТЬ ТУРНИР";
-                        currentMode = 'finished'; // Чтобы при след клике выйти
+                        currentMode = 'finished'; 
                     } else {
-                        // Симулируем другие матчи и создаем некст брекет
                         let newTeams = [];
                         for(let i=0; i < tourneyData.teamsLeft.length; i+=2) {
                             let tA = tourneyData.teamsLeft[i];
                             let tB = tourneyData.teamsLeft[i+1];
                             if (tA.id === tourneyData.playerTeam.id || tB.id === tourneyData.playerTeam.id) {
-                                newTeams.push(tourneyData.playerTeam); // Игрок прошел
+                                newTeams.push(tourneyData.playerTeam); 
                             } else {
-                                newTeams.push(Math.random() > 0.5 ? tA : tB); // Рандом ИИ победитель
+                                newTeams.push(Math.random() > 0.5 ? tA : tB); 
                             }
                         }
                         tourneyData.teamsLeft = newTeams;
@@ -631,7 +716,6 @@
                         switchScreen('screen-bracket');
                     }
                 } else {
-                    // Игрок проиграл
                     alert("Вы вылетаете из турнира!");
                     switchScreen('screen-modes');
                 }
