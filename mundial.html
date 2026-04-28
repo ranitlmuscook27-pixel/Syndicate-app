@@ -61,7 +61,7 @@
     </style>
 </head>
 <body>
-    <div class="version">Mundial v1.0</div>
+    <div class="version">Mundial v1.1</div>
 
     <div id="screen-intro" class="screen active-screen">
         <h1>⚽ Мундиаль 26</h1>
@@ -128,31 +128,32 @@
         </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="game-ui">
-        <div id="scoreboard">
-            <div class="score-row">
-                <div class="team-name" id="sb-t1-name">КОМАНДА 1</div>
-                <div class="team-score" id="sb-t1-score">0</div>
-                <div class="dots-container" id="sb-t1-dots"></div>
+    <div id="screen-game" class="screen" style="padding:0;">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-ui">
+            <div id="scoreboard">
+                <div class="score-row">
+                    <div class="team-name" id="sb-t1-name">КОМАНДА 1</div>
+                    <div class="team-score" id="sb-t1-score">0</div>
+                    <div class="dots-container" id="sb-t1-dots"></div>
+                </div>
+                <div style="width: 100%; height: 1px; background: #333; margin: 2px 0;"></div>
+                <div class="score-row">
+                    <div class="team-name" id="sb-t2-name">КОМАНДА 2</div>
+                    <div class="team-score" id="sb-t2-score">0</div>
+                    <div class="dots-container" id="sb-t2-dots"></div>
+                </div>
             </div>
-            <div style="width: 100%; height: 1px; background: #333; margin: 2px 0;"></div>
-            <div class="score-row">
-                <div class="team-name" id="sb-t2-name">КОМАНДА 2</div>
-                <div class="team-score" id="sb-t2-score">0</div>
-                <div class="dots-container" id="sb-t2-dots"></div>
+            
+            <div id="turn-msg">ВАШ УДАР</div>
+            <div id="target-cursor"></div>
+            
+            <div id="power-container">
+                <div class="power-markers">
+                    <div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker" style="border:none;"></div>
+                </div>
+                <div id="power-fill"></div>
             </div>
-        </div>
-        
-        <div id="turn-msg">ВАШ УДАР</div>
-        <div id="target-cursor"></div>
-        
-        <div id="power-container">
-            <div class="power-markers">
-                <div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker"></div><div class="marker" style="border:none;"></div>
-            </div>
-            <div id="power-fill"></div>
         </div>
     </div>
 
@@ -177,7 +178,9 @@
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
             document.getElementById(id).classList.add('active-screen');
-            document.getElementById('game-ui').style.display = 'none';
+            if (id !== 'screen-game') {
+                document.getElementById('game-ui').style.display = 'none';
+            }
         }
 
         // ЗАПОЛНЕНИЕ СЕЛЕКТОВ
@@ -346,10 +349,14 @@
         }
 
         function startGame() {
+            // Исправлено здесь: теперь показываем экран с канвасом и UI
             switchScreen('screen-game');
             document.getElementById('game-ui').style.display = 'block';
             resizeCanvas();
             updateUI();
+            
+            // Если анимация уже была запущена, отменяем её, чтобы не было дублей
+            if (animId) cancelAnimationFrame(animId);
             loop();
         }
 
