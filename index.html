@@ -75,13 +75,14 @@
             display: flex; align-items: center; justify-content: space-between;
         }
         .btn-hub:active { border-color: #ff3e3e; color: #ff3e3e; transform: scale(0.98); }
+        .btn-inventory { border-color: #58a6ff; } /* Особый цвет для кнопки инвентаря */
 
         /* СЕКЦИИ */
         .section { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 400px; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .section-header { font-size: 20px; color: #58a6ff; text-transform: uppercase; margin-bottom: 25px; letter-spacing: 2px; }
 
-        /* КАРТОЧКИ ИГР (ВСЕ ОТКРЫТЫ) */
+        /* КАРТОЧКИ ИГР */
         .game-item {
             background: #0d1117; border: 1px solid #30363d; padding: 15px; border-radius: 12px;
             margin-bottom: 12px; width: 100%; box-sizing: border-box; cursor: pointer;
@@ -95,6 +96,42 @@
 
         .btn-back { background: transparent; color: #8b949e; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 20px; width: 100%; cursor: pointer; font-family: inherit; }
         .btn-back:active { background: #333; color: #fff;}
+
+        /* --- ИНВЕНТАРЬ (МОДАЛЬНОЕ ОКНО) --- */
+        #inventory-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 200; display: none; 
+            flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .inventory-box {
+            background: #111118; border: 2px solid #58a6ff; border-radius: 15px; 
+            padding: 20px; width: 90%; max-width: 350px; position: relative; 
+            box-shadow: 0 0 25px rgba(88,166,255,0.2); animation: fadeIn 0.3s ease;
+        }
+        .close-inv-btn {
+            position: absolute; top: 12px; right: 15px; background: transparent; border: none; 
+            color: #8b949e; font-size: 24px; cursor: pointer; padding: 0;
+        }
+        .close-inv-btn:active { color: #ff3e3e; }
+        .inv-title { color: #58a6ff; font-size: 22px; text-transform: uppercase; margin-top: 0; margin-bottom: 20px; text-align: center;}
+        
+        .inv-category { margin-bottom: 15px; }
+        .inv-cat-name { color: #ff9d00; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px;}
+        .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .inv-cell {
+            background: #0a0a0f; border: 1px solid #30363d; border-radius: 8px; 
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+            font-size: 22px; position: relative; transition: 0.2s;
+        }
+        .inv-cell.filled { border-color: #58a6ff; background: rgba(88,166,255,0.05); box-shadow: 0 0 10px rgba(88,166,255,0.1) inset;}
+        
+        /* Всплывающая подсказка с названием предмета */
+        .cell-tooltip {
+            display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+            background: #fff; color: #000; font-size: 10px; font-weight: bold; padding: 4px 8px; 
+            border-radius: 4px; white-space: nowrap; z-index: 10; pointer-events: none;
+        }
+        .inv-cell:active .cell-tooltip, .inv-cell:hover .cell-tooltip { display: block; }
     </style>
 </head>
 <body>
@@ -122,6 +159,8 @@
             </div>
             
             <div class="menu-list">
+                <button class="btn-hub btn-inventory" onclick="toggleInventory()">Инвентарь Агента <span>🎒</span></button>
+                
                 <button class="btn-hub" onclick="openSection('sec-games')">Наши мини-игры <span>➜</span></button>
                 
                 <button class="btn-hub" onclick="window.location.href='exchange.html'">Биржа Синдиката <span>➜</span></button>
@@ -157,6 +196,32 @@
         </div>
     </div>
 
+    <div id="inventory-overlay">
+        <div class="inventory-box">
+            <button class="close-inv-btn" onclick="toggleInventory()">✖</button>
+            <h3 class="inv-title">Инвентарь</h3>
+            
+            <div class="inv-category">
+                <div class="inv-cat-name">Статусы</div>
+                <div class="inv-grid" id="grid-status">
+                    </div>
+            </div>
+
+            <div class="inv-category">
+                <div class="inv-cat-name">Акции компаний</div>
+                <div class="inv-grid" id="grid-shares">
+                    </div>
+            </div>
+
+            <div class="inv-category">
+                <div class="inv-cat-name">Драгоценности</div>
+                <div class="inv-grid" id="grid-jewels">
+                    </div>
+            </div>
+
+        </div>
+    </div>
+
     <script>
         window.onload = function() {
             syncWallet();
@@ -167,7 +232,7 @@
                     intro.style.display = 'none';
                     checkPlayerIdentity();
                 }, 1000);
-            }, 1500); // Сократил время заставки до 1.5 сек, чтобы быстрее тестировать
+            }, 1500);
         };
 
         function checkPlayerIdentity() {
@@ -209,7 +274,75 @@
             document.getElementById('menu-main').style.display = 'block';
             syncWallet();
         }
+
+        /* --- ЛОГИКА ИНВЕНТАРЯ --- */
+        function toggleInventory() {
+            const inv = document.getElementById('inventory-overlay');
+            if (inv.style.display === 'flex') {
+                inv.style.display = 'none';
+            } else {
+                renderInventory();
+                inv.style.display = 'flex';
+            }
+        }
+
+        function renderInventory() {
+            // Берем инвентарь с биржи. Если пусто, создаем пустой массив
+            let savedInv = JSON.parse(localStorage.getItem('syndicate_inventory')) || [];
+            
+            // Фильтруем предметы по категориям (по ключевым словам из биржи)
+            let statuses = savedInv.filter(i => i.includes('Статус'));
+            let shares = savedInv.filter(i => i.includes('Акция'));
+            let jewels = savedInv.filter(i => i.includes('Слиток') || i.includes('Золото'));
+
+            // Заполняем сетки (5 ячеек максимум визуально)
+            fillGrid('grid-status', statuses, '🏆');
+            fillGrid('grid-shares', shares, '📈');
+            fillGrid('grid-jewels', jewels, '💎');
+        }
+
+        function fillGrid(gridId, items, defaultEmoji) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            // Ровно 5 ячеек в каждой категории
+            for(let i = 0; i < 5; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'inv-cell';
+                
+                if (items[i]) {
+                    // Если предмет есть
+                    cell.classList.add('filled');
+                    let emoji = getEmojiForName(items[i]) || defaultEmoji;
+                    // Добавляем иконку и всплывающую подсказку
+                    cell.innerHTML = `<span>${emoji}</span><div class="cell-tooltip">${items[i]}</div>`;
+                }
+                
+                grid.appendChild(cell);
+            }
+        }
+
+        // Подбираем красивую иконку под то, что выпало на бирже
+        function getEmojiForName(name) {
+            if(name.includes('Серебро')) return '🥈';
+            if(name.includes('Золото')) return '🥇';
+            if(name.includes('Платина')) return '💠';
+            if(name.includes('Алмаз')) return '👑';
+            
+            if(name.includes('Дакар')) return '🚚';
+            if(name.includes('Hoops')) return '🏀';
+            if(name.includes('Протокол')) return '🔐';
+            if(name.includes('Мундиаль')) return '⚽';
+            
+            if(name.includes('Слиток')) return '🪙';
+            return null;
+        }
+
+        // Закрытие инвентаря при клике на темный фон
+        document.getElementById('inventory-overlay').addEventListener('click', function(e) {
+            if(e.target === this) toggleInventory();
+        });
+
     </script>
 </body>
 </html>
-
